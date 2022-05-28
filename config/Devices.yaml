@@ -1,0 +1,33 @@
+'1':
+  id_v2: 0e779109-d0da-47f6-ae56-725858752f80
+  name: WLED
+  modelid: LST002
+  uniqueid: 00:17:88:01:00:c8:e2:13-0b
+  state:
+    'on': true
+    bri: 255
+    hue: 0
+    sat: 0
+    xy:
+    - 0.5755690715084125
+    - 0.4052342017853906
+    ct: 447
+    alert: select
+    mode: homeautomation
+    effect: none
+    colormode: xy
+    reachable: true
+  config:
+    archetype: huelightstrip
+    function: mixed
+    direction: omnidirectional
+    startup:
+      mode: safety
+      configured: false
+  protocol: wled
+  protocol_cfg:
+    ip: 10.0.0.20:80
+    ledCount: 60
+    mdns_name: WLED
+    mac: 3c:71:bf:32:49:f1
+    segmentId: 0
