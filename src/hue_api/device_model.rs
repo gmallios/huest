@@ -6,9 +6,9 @@ use std::collections::HashMap;
 
 // Device.yaml type definitions
 
-pub type DeviceList = HashMap<String, Device>;
+pub type DeviceMap = HashMap<u8, Device>;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize,Clone,Debug)]
 pub struct Device {
     #[serde(rename = "id_v2")]
     pub id_v2: String,
@@ -35,7 +35,7 @@ pub struct Device {
     pub protocol_cfg: ProtocolCfg,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize,Clone,Debug)]
 pub struct Config {
     #[serde(rename = "archetype")]
     archetype: String,
@@ -50,7 +50,7 @@ pub struct Config {
     startup: Startup,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize,Clone,Debug)]
 pub struct Startup {
     #[serde(rename = "mode")]
     mode: String,
@@ -59,7 +59,7 @@ pub struct Startup {
     configured: bool,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize,Clone,Debug)]
 pub struct ProtocolCfg {
     #[serde(rename = "ip")]
     ip: String,
@@ -86,7 +86,7 @@ pub struct ProtocolCfg {
     segment_id: Option<i64>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize,Clone,Debug)]
 pub struct State {
     #[serde(rename = "on")]
     on: bool,

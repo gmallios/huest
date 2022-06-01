@@ -1,5 +1,5 @@
 use clap::Parser;
-use std::sync::{Mutex};
+use std::sync::{Mutex, Arc};
 
 #[derive(Clone)]
 pub struct BridgeParams {
@@ -9,19 +9,17 @@ pub struct BridgeParams {
     pub https: bool,
 }
 
-
-// Preferably not be mutated after initialization. 
 lazy_static! {
-    pub static ref BRIDGE_PARAMS: Mutex<BridgeParams> = Mutex::new(BridgeParams {
+    pub static ref BRIDGE_PARAMS: Arc<Mutex<BridgeParams>> = Arc::new(Mutex::new(BridgeParams {
         mac_address: mac_address::get_mac_address().unwrap().unwrap().to_string(),
         bind_ip: "0.0.0.0".to_string(),
         port: 6565,
         https: false
-    });
+    }));
 }
 
 pub fn config_get_mac_addr() -> String {
-    return BRIDGE_PARAMS.lock().unwrap().mac_address.clone();
+    return BRIDGE_PARAMS.lock().unwrap().mac_address.to_string();
 }
 
 // #[derive(Parser,Debug)]
