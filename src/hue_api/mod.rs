@@ -1,5 +1,5 @@
-use crate::bridge::config_get_mac_addr;
-use rocket::{response::content, Route};
+use crate::{bridge::config_get_mac_addr, ApiState};
+use rocket::{response::content, Route, State};
 use serde_json::json;
 
 mod device_model;
@@ -7,16 +7,21 @@ pub(crate) mod hue_config_controller;
 mod hue_config_model;
 
 // All routes under /api
-pub fn hue_routes() -> Vec<Route>{
-    routes![
-        route_config,
-        route_config_no_user,
-        route_config_with_uid
-    ]
+pub fn hue_routes() -> Vec<Route> {
+    routes![route_config, route_config_no_user, route_config_with_uid]
 }
 
 #[get("/config")]
-fn route_config() -> content::RawJson<&'static str> {
+fn route_config(api_state: &State<ApiState>) -> content::RawJson<&'static str> {
+    println!(
+        "{:?}",
+        api_state
+            .hue_config_controller
+            .lock()
+            .unwrap()
+            .get_device_list()
+            .get(&0)
+    );
     content::RawJson("{ 'devicetype': 'Rustue' }")
 }
 

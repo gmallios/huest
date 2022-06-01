@@ -1,3 +1,7 @@
+use std::sync::{Mutex, Arc};
+
+use hue_api::hue_config_controller::HueConfigController;
+
 #[macro_use]
 extern crate rocket;
 #[macro_use]
@@ -27,8 +31,14 @@ mod hue_api;
 
 // }
 
+pub struct ApiState {
+    hue_config_controller: Arc<Mutex<HueConfigController>>,
+}
+
 #[launch]
 fn rocket() -> _ {
+    // Create HUE_CONFIG_CONTORLLER
+
     // lazy_static::initialize(&HUE_CONFIG_CONTROLLER);
     // println!(
     //     "{:?}",
@@ -38,7 +48,13 @@ fn rocket() -> _ {
     //         .get_device_list()
     //         .get(&0)
     // );
+
+    let api_state = ApiState {
+        hue_config_controller: Arc::new(Mutex::new(HueConfigController::new())),
+    };
+
     rocket::build()
+        .manage(api_state)
         .mount("/", routes![hello])
         .mount("/api", hue_api::hue_routes())
 }

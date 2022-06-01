@@ -6,9 +6,9 @@ use crate::hue_api::hue_config_model::load_devices;
 use super::device_model::{DeviceMap, Device};
 
 
-lazy_static!{
-    pub static ref HUE_CONFIG_CONTROLLER: Arc<RwLock<HueConfigController>> = Arc::new(RwLock::new(HueConfigController::new()));
-}
+// lazy_static!{
+//     pub static ref HUE_CONFIG_CONTROLLER: Arc<Mutex<HueConfigController>> = Arc::new(Mutex::new(HueConfigController::new()));
+// }
 
 #[derive(Clone)]
 pub struct HueConfigController {
