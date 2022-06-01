@@ -1,4 +1,4 @@
-use std::sync::{RwLock, Arc};
+use std::sync::{RwLock, Arc, Mutex};
 
 // use crate::device_model::{DeviceMap, Device};
 use crate::hue_api::hue_config_model::load_devices;
@@ -10,11 +10,18 @@ use super::device_model::{DeviceMap, Device};
 //     pub static ref HUE_CONFIG_CONTROLLER: Arc<Mutex<HueConfigController>> = Arc::new(Mutex::new(HueConfigController::new()));
 // }
 
+
+pub struct HueConfigControllerState {
+    pub hue_config_controller: Arc<Mutex<HueConfigController>>,
+}
+
 #[derive(Clone)]
 pub struct HueConfigController {
     device_map: DeviceMap,
     device_array: Vec<Device>
 }
+
+
 
 impl HueConfigController {
 

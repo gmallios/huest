@@ -1,6 +1,6 @@
 use std::sync::{Mutex, Arc};
 
-use hue_api::hue_config_controller::HueConfigController;
+use hue_api::hue_config_controller::{HueConfigController, HueConfigControllerState};
 
 #[macro_use]
 extern crate rocket;
@@ -31,9 +31,7 @@ mod hue_api;
 
 // }
 
-pub struct ApiState {
-    hue_config_controller: Arc<Mutex<HueConfigController>>,
-}
+
 
 #[launch]
 fn rocket() -> _ {
@@ -49,7 +47,7 @@ fn rocket() -> _ {
     //         .get(&0)
     // );
 
-    let api_state = ApiState {
+    let api_state = HueConfigControllerState {
         hue_config_controller: Arc::new(Mutex::new(HueConfigController::new())),
     };
 

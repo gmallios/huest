@@ -1,4 +1,4 @@
-use crate::{bridge::config_get_mac_addr, ApiState};
+use crate::{bridge::config_get_mac_addr, hue_api::hue_config_controller::HueConfigControllerState};
 use rocket::{response::content, Route, State};
 use serde_json::json;
 
@@ -12,7 +12,7 @@ pub fn hue_routes() -> Vec<Route> {
 }
 
 #[get("/config")]
-fn route_config(api_state: &State<ApiState>) -> content::RawJson<&'static str> {
+fn route_config(api_state: &State<HueConfigControllerState>) -> content::RawJson<&'static str> {
     println!(
         "{:?}",
         api_state
