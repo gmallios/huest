@@ -1,0 +1,69 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
+// https://github.com/microsoft/vscode-dev-containers/tree/v0.234.0/containers/rust
+{
+	"name": "Rust",
+	"build": {
+		"dockerfile": "Dockerfile",
+		"args": {
+			// Use the VARIANT arg to pick a Debian OS version: buster, bullseye
+			// Use bullseye when on local on arm64/Apple Silicon.
+			"VARIANT": "bullseye",
+			"network": "host"
+		}
+	},
+	"runArgs": [
+		"--cap-add=SYS_PTRACE",
+		"--security-opt",
+		"seccomp=unconfined"
+	],
+
+	// Set *default* container specific settings.json values on container create.
+	"settings": {
+		"lldb.executable": "/usr/bin/lldb",
+		// VS Code don't watch files under ./target
+		"files.watcherExclude": {
+			"**/target/**": true
+		},
+		"rust-analyzer.checkOnSave.command": "clippy"
+	},
+
+	"containerEnv": {
+		"ROCKET_PORT": "80"
+	},
+	// Add the IDs of extensions you want installed when the container is created.
+	"extensions": [
+		"vadimcn.vscode-lldb",
+		"mutantdino.resourcemonitor",
+		"rust-lang.rust-analyzer",
+		"tamasfe.even-better-toml",
+		"serayuzgur.crates",
+        "tamasfe.even-better-toml", // for Cargo.toml
+       rust-lang.rust-analyzer
+        "davidanson.vscode-markdownlint",
+        "ms-azuretools.vscode-docker", // Docker integration and linting
+        // "shardulm94.trailing-spaces", // Show trailing spaces
+        // "Gruntfuggly.todo-tree", // Highlights TODO comments
+        // "bierner.emojisense", // Emoji sense for markdown
+        // "stkb.rewrap", // rewrap comments after n characters on one line
+        // "vscode-icons-team.vscode-icons", // Better file extension icons
+        "github.vscode-pull-request-github", // Github interaction
+        // "redhat.vscode-yaml", // Kubernetes, Drone syntax highlighting
+        // "bajdzis.vscode-database", // Supports connections to mysql or postgres, over SSL, socked
+        // "IBM.output-colorizer", // Colorize your output/test logs
+        // "mohsen1.prettify-json", // Prettify JSON data
+        // "zxh404.vscode-proto3", // Supports Proto syntax
+        // "jrebocho.vscode-random", // Generates random values
+        // "alefragnani.Bookmarks", // Manage bookmarks
+        // "quicktype.quicktype", // Paste JSON as code
+        // "spikespaz.vscode-smoothtype", // smooth cursor animation
+	],
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+
+	// Use 'postCreateCommand' to run commands after the container is created.
+	// "postCreateCommand": "rustc --version",
+
+	// Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
+	"remoteUser": "vscode"
+}
