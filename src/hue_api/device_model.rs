@@ -6,8 +6,6 @@ use std::collections::HashMap;
 
 // Device.yaml type definitions
 
-pub type DeviceMap = HashMap<u8, Device>;
-
 #[derive(Serialize, Deserialize,Clone,Debug)]
 pub struct Device {
     #[serde(rename = "id_v2")]

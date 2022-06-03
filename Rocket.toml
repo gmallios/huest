@@ -1,0 +1,12 @@
+[global]
+address="0.0.0.0"
+
+
+[global.tls]
+certs = "ssl/cert.pem"
+key = "ssl/private.pem"
+
+[development]
+port=8000
+
+[production]

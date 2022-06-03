@@ -1,9 +1,9 @@
 use std::sync::{RwLock, Arc, Mutex};
 
 // use crate::device_model::{DeviceMap, Device};
-use crate::hue_api::hue_config_model::load_devices;
+use crate::hue_api::hue_config_model::{load_devices, load_bridge_config};
 
-use super::device_model::{DeviceMap, Device};
+use super::{device_model::{Device}, hue_config_model::{BridgeConfig, DeviceMap}};
 
 
 // lazy_static!{
@@ -18,7 +18,8 @@ pub struct HueConfigControllerState {
 #[derive(Clone)]
 pub struct HueConfigController {
     device_map: DeviceMap,
-    device_array: Vec<Device>
+    device_array: Vec<Device>,
+    bridge_config: BridgeConfig
 }
 
 
@@ -26,9 +27,13 @@ pub struct HueConfigController {
 impl HueConfigController {
 
     pub fn new() -> HueConfigController {
-        println!("init");
+        println!("hueconfigcontroller init");
+        let device_map = load_devices();
+        let bridge_config = load_bridge_config();
+
         HueConfigController {
-            device_map: load_devices(),
+            device_map: device_map,
+            bridge_config: bridge_config,
             device_array: Vec::new()
         }
         
