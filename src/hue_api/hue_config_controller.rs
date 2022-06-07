@@ -47,6 +47,10 @@ impl HueConfigController {
         self.device_map = device_list;
     }
 
+    pub fn is_link_button_pressed(&self) -> bool {
+        return self.bridge_config.link_button_pressed;
+    }
+
     // pub fn get_device_by_id(&self, id: &str) -> Option<devices::Device> {
     //     for device in self.device_map.get_devices() {
     //         if device.get_id() == id {

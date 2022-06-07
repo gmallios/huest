@@ -75,7 +75,13 @@ pub struct BridgeConfig {
     netmask: String,
     bridgeid: String,
     timezone: String,
+    linkbutton: LinkButton
 
+}
+
+#[derive(Serialize, Deserialize,Clone,Debug)]
+pub struct LinkButton{
+    pub lastlinkbuttonpushed: String
 }
 
 // pub enum ModelIDs {

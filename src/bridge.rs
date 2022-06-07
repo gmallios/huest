@@ -1,5 +1,7 @@
 use clap::Parser;
+use local_ip_address::local_ip;
 use std::sync::{Mutex, Arc};
+
 
 #[derive(Clone)]
 pub struct BridgeParams {
@@ -7,6 +9,7 @@ pub struct BridgeParams {
     pub bind_ip: String,
     pub port: u16,
     pub https: bool,
+    pub local_ip: String
 }
 
 lazy_static! {
@@ -14,7 +17,8 @@ lazy_static! {
         mac_address: mac_address::get_mac_address().unwrap().unwrap().to_string(),
         bind_ip: "0.0.0.0".to_string(),
         port: 6565,
-        https: false
+        https: false,
+        local_ip: local_ip().unwrap().to_string()
     }));
 }
 

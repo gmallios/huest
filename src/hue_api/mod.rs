@@ -25,8 +25,9 @@ fn route_config(api_state: &State<HueConfigControllerState>) -> content::RawJson
     content::RawJson("{ 'devicetype': 'Rustue' }")
 }
 
-#[get("/nouser/config")]
-fn route_config_no_user() -> content::RawJson<String> {
+#[get("/nouser/config", data="<devicetype>")]
+fn route_config_no_user(devicetype: Option<String>) -> content::RawJson<String> {
+    
     content::RawJson(
         json!({
             "name": "Rustue Emulated Bridge",

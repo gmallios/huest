@@ -32,13 +32,12 @@
 	},
 	// Add the IDs of extensions you want installed when the container is created.
 	"extensions": [
-		"vadimcn.vscode-lldb",
+		//"vadimcn.vscode-lldb",
 		"mutantdino.resourcemonitor",
 		"rust-lang.rust-analyzer",
 		"tamasfe.even-better-toml",
 		"serayuzgur.crates",
         "tamasfe.even-better-toml", // for Cargo.toml
-       rust-lang.rust-analyzer
         "davidanson.vscode-markdownlint",
         "ms-azuretools.vscode-docker", // Docker integration and linting
         // "shardulm94.trailing-spaces", // Show trailing spaces
@@ -59,7 +58,8 @@
 	],
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [],
+	// "forwardPorts": [80,443,1900],
+	"appPort": [80,443,1900],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
 	// "postCreateCommand": "rustc --version",

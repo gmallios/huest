@@ -1,12 +1,12 @@
 [global]
 address="0.0.0.0"
 
-
-[global.tls]
-certs = "ssl/cert.pem"
-key = "ssl/private.pem"
-
-[development]
+[debug]
 port=8000
 
-[production]
+[release]
+port=80
+
+[release.tls]
+certs = "ssl/cert.pem"
+key = "ssl/private.pem"
