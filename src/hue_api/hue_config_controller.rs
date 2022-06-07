@@ -48,7 +48,7 @@ impl HueConfigController {
     }
 
     pub fn is_link_button_pressed(&self) -> bool {
-        return self.bridge_config.link_button_pressed;
+        return true;
     }
 
     // pub fn get_device_by_id(&self, id: &str) -> Option<devices::Device> {
