@@ -10,4 +10,3 @@ port=8081
 [release.tls]
 certs = "ssl/cert.pem"
 key = "ssl/private.pem"
-serve_on = ["https"|"both"]
