@@ -13,15 +13,15 @@ pub fn hue_routes() -> Vec<Route> {
 
 #[get("/config")]
 fn route_config(api_state: &State<HueConfigControllerState>) -> content::RawJson<&'static str> {
-    println!(
-        "{:?}",
-        api_state
-            .hue_config_controller
-            .lock()
-            .unwrap()
-            .get_device_list()
-            .get(&0)
-    );
+    // println!(
+    //     "{:?}",
+    //     api_state
+    //         .hue_config_controller
+    //         .lock()
+    //         .unwrap()
+    //         .get_device_list()
+    //         .get(&0)
+    // );
     content::RawJson("{ 'devicetype': 'Rustue' }")
 }
 

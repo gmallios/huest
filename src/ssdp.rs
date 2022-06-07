@@ -7,11 +7,11 @@ use std::{
 
 use crate::bridge::BRIDGE_PARAMS;
 
-static SSDP_INTERVAL: u64  = 1000;
+static SSDP_INTERVAL: u64  = 1500;
 
 //https://github.com/rustasync/team/issues/81
 pub fn start_ssdp_broadcast() {
-    let ssdp_socket = match UdpSocket::bind("0.0.0.0:0") {
+    let ssdp_socket = match UdpSocket::bind("0.0.0.0:1900") {
         Ok(socket) => socket,
         Err(e) => {
             println!("Failed to bind to SSDP socket: {}", e);
@@ -26,10 +26,17 @@ pub fn start_ssdp_broadcast() {
         )
         .unwrap();
 
+
     let msg = ssdp_msg.as_bytes();
-    loop {
+    let mut buf = [0; 1024];
+    for _ in 0..10 {
+        let (number_of_bytes, src_addr) =
+                ssdp_socket.recv_from(&mut buf).expect("Didn't receive data");
+        // ssdp_socket
+        //     .send_to(&msg, "239.255.255.250:1900")
+        //     .expect("Failed to send SSDP message");
         ssdp_socket
-            .send_to(&msg, "239.255.255.250:1900")
+            .send_to(&msg, src_addr)
             .expect("Failed to send SSDP message");
         thread::sleep(Duration::from_millis(SSDP_INTERVAL));
     }

@@ -1,10 +1,11 @@
 use bridge::config_get_mac_addr;
 use hue_api::hue_config_controller::{HueConfigController, HueConfigControllerState};
+use hue_mdns::start_hue_mdns;
 use rocket::{response::{content, status}, http::Status};
 use ssdp::start_ssdp_broadcast;
 use std::{
     sync::{Arc, Mutex},
-    thread, fs,
+    thread, fs, time::Duration,
 };
 
 #[macro_use]
@@ -22,6 +23,7 @@ static OPENSSL_PATH: &str = "/opt/homebrew/opt/openssl/bin/openssl";
 mod bridge;
 mod hue_api;
 mod ssdp;
+mod hue_mdns;
 
 #[launch]
 fn rocket() -> _ {
@@ -49,10 +51,12 @@ fn rocket() -> _ {
     }
 
     thread::spawn(|| start_ssdp_broadcast());
+    thread::spawn(|| start_hue_mdns());
 
     let api_state = HueConfigControllerState {
         hue_config_controller: Arc::new(Mutex::new(HueConfigController::new())),
     };
+
 
     rocket::build()
         .manage(api_state)

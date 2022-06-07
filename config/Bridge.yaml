@@ -8,3 +8,5 @@ gateway: ""
 netmask: ""
 bridgeid: ""
 timezone: ""
+linkbutton:
+  lastlinkbuttonpushed: ""

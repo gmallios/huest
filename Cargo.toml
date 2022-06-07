@@ -15,3 +15,4 @@ lazy_static = "1.4.0"
 hex = "0.4.3"
 local-ip-address = "0.4.4"
 clap = { version = "3.1.18", features = ["derive"] }
+zeroconf = "0.10.5"
