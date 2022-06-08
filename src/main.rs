@@ -1,11 +1,17 @@
 use bridge::config_get_mac_addr;
 use hue_api::hue_config_controller::{HueConfigController, HueConfigControllerState};
 use hue_mdns::start_hue_mdns;
-use rocket::{response::{content, status}, http::Status};
+use rocket::{
+    http::Status,
+    response::{content, status},
+    Config,
+};
 use ssdp::start_ssdp_broadcast;
 use std::{
+    fs,
     sync::{Arc, Mutex},
-    thread, fs, time::Duration,
+    thread,
+    time::Duration,
 };
 
 #[macro_use]
@@ -22,11 +28,11 @@ static OPENSSL_PATH: &str = "/opt/homebrew/opt/openssl/bin/openssl";
 
 mod bridge;
 mod hue_api;
-mod ssdp;
 mod hue_mdns;
+mod ssdp;
 
 #[launch]
-fn rocket() -> _ {
+async fn rocket() -> _ {
     // Create HUE_CONFIG_CONTORLLER
 
     // lazy_static::initialize(&HUE_CONFIG_CONTROLLER);
@@ -57,7 +63,6 @@ fn rocket() -> _ {
         hue_config_controller: Arc::new(Mutex::new(HueConfigController::new())),
     };
 
-
     rocket::build()
         .manage(api_state)
         .mount("/", routes![hello, description_xml])
@@ -73,7 +78,8 @@ async fn hello() -> &'static str {
 async fn description_xml() -> status::Custom<content::RawXml<String>> {
     status::Custom(
         Status::Ok,
-        content::RawXml(fs::read_to_string("static/description.xml").unwrap()))
+        content::RawXml(fs::read_to_string("static/description.xml").unwrap()),
+    )
 }
 
 fn gen_ssl_cert() -> Result<std::process::ExitStatus, std::io::Error> {
