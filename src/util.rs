@@ -58,3 +58,37 @@ pub fn save_config<T>(filename: &str, config: T) -> Result<(), std::io::Error> w
     };
     fs::write(path, config_str)
 }
+#[cfg(test)]
+mod util_tests {
+    use serde::{Serialize, Deserialize};
+    use crate::util::CONFIG_PATH_PREFIX;
+
+    #[derive(Debug, PartialEq, Serialize, Deserialize)]
+    struct ExampleConfig {
+        pub name: String,
+        pub age: u8,
+    }
+
+    impl Default for ExampleConfig {
+        fn default() -> Self {
+            ExampleConfig {
+                name: "Default Value".to_string(),
+                age: 69,
+            }
+        }
+    }
+
+    #[test]
+    fn test_config_flow() {
+        // Test both saving and loading config
+        let example_config = ExampleConfig {
+            name: "John".to_string(),
+            age: 30,
+        };
+
+        super::save_config("test.yaml", &example_config).unwrap();
+        let loaded_config: ExampleConfig = super::load_config::<ExampleConfig>("test.yaml");
+        assert_eq!(example_config, loaded_config);
+        std::fs::remove_file(format!("{}/test.yaml", CONFIG_PATH_PREFIX)).unwrap();
+    }
+}
