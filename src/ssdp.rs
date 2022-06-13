@@ -9,13 +9,14 @@ use crate::bridge::BRIDGE_PARAMS;
 
 static SSDP_INTERVAL: u64  = 1500;
 
-//https://github.com/rustasync/team/issues/81
+// https://github.com/rustasync/team/issues/81
+// I don't know if this is working yet
 pub fn start_ssdp_broadcast() {
     let ssdp_socket = match UdpSocket::bind("0.0.0.0:1900") {
         Ok(socket) => socket,
         Err(e) => {
             println!("Failed to bind to SSDP socket: {}", e);
-            std::process::exit(1);
+            return;
         }
     };
     let ssdp_msg = format!("HTTP/1.1 200 OK\r\n CACHE-CONTROL: max-age=100\r\n EXT:\r\n LOCATION: http://{}:80/description.xml\r\n SERVER: FreeRTOS/6.0.5, UPnP/1.0, IpBridge/0.1\r\n ST: uuid:0FDD7736-722C-4995-89F2-ABCDEF000000\r\n USN: uuid:0FDD7736-722C-4995-89F2-ABCDEF000000\r\n \r\n", BRIDGE_PARAMS.lock().unwrap().local_ip);

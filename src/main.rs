@@ -30,9 +30,11 @@ mod bridge;
 mod hue_api;
 mod hue_mdns;
 mod ssdp;
+mod util;
 
 #[launch]
 async fn rocket() -> _ {
+    println!("Starting Hue Bridge...");
     // Create HUE_CONFIG_CONTORLLER
 
     // lazy_static::initialize(&HUE_CONFIG_CONTROLLER);
@@ -58,6 +60,7 @@ async fn rocket() -> _ {
 
     thread::spawn(|| start_ssdp_broadcast());
     thread::spawn(|| start_hue_mdns());
+    
 
     let api_state = HueConfigControllerState {
         hue_config_controller: Arc::new(Mutex::new(HueConfigController::new())),

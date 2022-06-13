@@ -3,12 +3,14 @@ use std::{
     fs::{self, File},
     io::{self, Write},
     path::Path,
-    sync::RwLock,
+    sync::RwLock, os::unix::process,
 };
 
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de};
 
 use super::device_model::Device;
+
+
 
 pub fn load_devices() -> DeviceMap {
     let file = fs::read_to_string("config/Devices.yaml").unwrap();
@@ -16,30 +18,40 @@ pub fn load_devices() -> DeviceMap {
     return device_list;
 }
 
-pub fn load_bridge_config() -> BridgeConfig {
-    // Create bridge.yaml if it doesnt exist
-    if !Path::new("config/Bridge.yaml").exists() {
-        let mut file = File::create("config/Bridge.yaml").unwrap();
-        let bconf = BridgeConfig {
-            swversion: String::new(),
-            apiversion: String::new(),
-            mac: String::new(),
-            netmask: String::new(),
-            gateway: String::new(),
-            timezone: String::new(),
-            bridgeid: String::new(),
-            name: String::new(),
-            ipaddress: String::new(),
-            linkbutton: LinkButton {
-                lastlinkbuttonpushed: String::new(),
-            },
-        };
-        fs::write("config/Bridge.yaml", serde_yaml::to_string(&bconf).unwrap()).unwrap();
-    }
 
-    let file = fs::read_to_string("config/Bridge.yaml").unwrap();
-    let bridge_config: BridgeConfig = serde_yaml::from_str(&file).unwrap();
-    return bridge_config;
+
+
+pub fn load_bridge_config() -> BridgeConfig {
+    // // Create bridge.yaml if it doesnt exist
+    // if !Path::new("config/Bridge.yaml").exists() {
+    //     let mut file = File::create("config/Bridge.yaml").unwrap();
+    //     save_bridge_config(BridgeConfig::default()).unwrap();
+    // }
+
+    // let file = match fs::read_to_string("config/Bridge.yaml"){
+    //     Ok(file) => file,
+    //     Err(e) => {
+    //         println!("fs::read_to_string error for bridge.yaml");
+    //         std::process::exit(0);
+    //     }
+    // };
+
+    // let bridge_config: BridgeConfig = match serde_yaml::from_str(&file){
+    //     Ok(bridge_config) => bridge_config,
+    //     Err(e) => {
+    //         // Most likely model mismatch
+    //         // Move bridge.yaml to bridge.yaml.bak.error
+    //         // and create a new one
+    //         println!("serde_yaml::from_str error for bridge.yaml");
+    //         println!("Moving to bridge.yaml.bak.error and creating a new one"); 
+    //         fs::rename("config/Bridge.yaml", "config/Bridge.yaml.bak.error").unwrap();
+    //         save_bridge_config(BridgeConfig::default()).unwrap();
+    //         BridgeConfig::default()
+    //     }
+    // };
+
+    // return bridge_config;
+    return crate::util::load_config::<BridgeConfig>(&"Bridge.yaml".to_string());
 }
 
 pub fn save_bridge_config(bridge_config: BridgeConfig) -> Result<(), std::io::Error> {
@@ -74,27 +86,41 @@ pub type DeviceMap = HashMap<u8, Device>;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct BridgeConfig {
-    name: String,
-    swversion: String,
-    apiversion: String,
-    mac: String,
-    ipaddress: String,
-    gateway: String,
-    netmask: String,
-    bridgeid: String,
-    timezone: String,
-    linkbutton: LinkButton,
+    pub name: String,
+    pub swversion: String,
+    pub apiversion: String,
+    pub mac: String,
+    pub ipaddress: String,
+    pub gateway: String,
+    pub netmask: String,
+    pub bridgeid: String,
+    pub timezone: String,
+    pub linkbutton: LinkButton,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct LinkButton {
-    pub lastlinkbuttonpushed: String,
+    pub lastlinkbuttonpushed: u64,
+    pub pressed: bool
 }
 
-// pub enum ModelIDs {
-
-// }
-
-// lazy_static! {
-//     static ref DEVICE_LIST: RwLock<devices::DeviceList> =  RwLock::new(load_devices());
-// }
+// Implement defaults for BridgeConfig
+impl Default for BridgeConfig {
+    fn default() -> BridgeConfig {
+        BridgeConfig {
+            name: String::new(),
+            swversion: String::new(),
+            apiversion: String::new(),
+            mac: String::new(),
+            ipaddress: String::new(),
+            gateway: String::new(),
+            netmask: String::new(),
+            bridgeid: String::new(),
+            timezone: String::new(),
+            linkbutton: LinkButton {
+                lastlinkbuttonpushed: 0,
+                pressed: false
+            },
+        }
+    }
+}

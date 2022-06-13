@@ -1,0 +1,11 @@
+tls:
+  certificates:
+    - certFile: "/etc/certs/cert.pem"
+      keyFile:  "/etc/certs/private.pem"
+      stores:
+        - default
+  stores:
+    default:
+      defaultCertificate:
+        certFile: "/etc/certs/cert.pem"
+        keyFile:  "/etc/certs/private.pem"
