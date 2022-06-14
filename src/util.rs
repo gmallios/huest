@@ -59,7 +59,7 @@ pub fn save_config<T>(filename: &str, config: T) -> Result<(), std::io::Error> w
     fs::write(path, config_str)
 }
 #[cfg(test)]
-mod util_tests {
+mod util_config {
     use serde::{Serialize, Deserialize};
     use crate::util::CONFIG_PATH_PREFIX;
 
