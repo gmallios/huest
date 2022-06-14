@@ -3,28 +3,24 @@ use crate::{
     bridge::config_get_mac_addr, hue_api::hue_config_controller::HueConfigControllerState,
 };
 use rocket::response::content::RawJson;
-use rocket::serde::Serialize;
-use rocket::{response::content, Route, State};
+use rocket::http::uri::Origin;
+use rocket::{serde::{Deserialize, Serialize, json::Json}, response::content, Route, State};
 
 mod device_model;
 pub(crate) mod hue_config_controller;
 mod hue_config_model;
 
+
 // All routes under /api
 pub fn hue_routes() -> Vec<Route> {
     routes![
-        create_user_route,
         route_config,
         route_config_no_user,
-        route_config_with_uid
+        route_config_with_uid,
+        route_config_post
     ]
 }
 
-#[get("/", data = "<devicetype>")]
-fn create_user_route(devicetype: Option<String>) -> content::RawJson<String> {
-    println!("{:?}", devicetype);
-    content::RawJson(json!({"success":{"username": "83b7780291a6ceffbe0bd049104df"}}).to_string())
-}
 
 #[derive(Serialize)]
 #[serde(crate = "rocket::serde")]
@@ -57,16 +53,27 @@ impl Default for HueConfigResponse {
         }
     }
 }
+#[derive(Deserialize, Debug)]
+struct CreateUserData {
+    devicetype: String,
+    generateclientkey: Option<bool>,
+}
+
+#[post("/", data = "<data>")]
+fn route_config_post(origin: &Origin, data: Json<CreateUserData>, api_state: &State<HueConfigControllerState>) -> content::RawJson<String> {
+    if !api_state.get_controller().is_link_button_pressed() {
+        // 101 Error - Link button not pressed
+        // TODO: Define error codes with messages
+        // TODO: Implement macro for error response
+        content::RawJson(json!({ "error": { "type": 101, "address": origin, "description": "link button not pressed" } }).to_string());
+    }
+    println!("devicetype: {}, generateclientkey: {}", data.devicetype, data.generateclientkey.unwrap());
+    content::RawJson(json!(HueConfigResponse::default()).to_string())
+}
 
 #[get("/config")]
-fn route_config(api_state: &State<HueConfigControllerState>) -> RawJson<String> {
-    let bridge_config = api_state
-        .hue_config_controller
-        .lock()
-        .unwrap()
-        .bridge_config
-        .clone();
-
+fn route_config(api_state: &State<HueConfigControllerState>) -> content::RawJson<String> {
+    let bridge_config = api_state.get_bridge_config();
     let bridgeid = bridge_config.bridgeid.clone();
     let mac = bridge_config.mac.clone();
     let response = HueConfigResponse {
@@ -77,15 +84,9 @@ fn route_config(api_state: &State<HueConfigControllerState>) -> RawJson<String> 
     content::RawJson(json!(response).to_string())
 }
 
-#[get("/nouser/config", data = "<devicetype>")]
-fn route_config_no_user(devicetype: Option<String>, api_state: &State<HueConfigControllerState>) -> content::RawJson<String> {
-    println!("{:?}", devicetype);
-    let bridge_config = api_state
-        .hue_config_controller
-        .lock()
-        .unwrap()
-        .bridge_config
-        .clone();
+#[get("/nouser/config")]
+fn route_config_no_user(api_state: &State<HueConfigControllerState>) -> content::RawJson<String> {
+    let bridge_config = api_state.get_bridge_config();
 
     let bridgeid = bridge_config.bridgeid.clone();
     let mac = bridge_config.mac.clone();
@@ -100,12 +101,7 @@ fn route_config_no_user(devicetype: Option<String>, api_state: &State<HueConfigC
 #[get("/<uid>/config")]
 fn route_config_with_uid(uid: String, api_state: &State<HueConfigControllerState>) -> content::RawJson<String> {
     println!("uid: {}", uid);
-    let bridge_config = api_state
-        .hue_config_controller
-        .lock()
-        .unwrap()
-        .bridge_config
-        .clone();
+    let bridge_config = api_state.get_bridge_config();
 
     let bridgeid = bridge_config.bridgeid.clone();
     let mac = bridge_config.mac.clone();
