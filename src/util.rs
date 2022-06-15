@@ -19,8 +19,8 @@ pub fn mac_addr_to_bridge_id(mac_addr: &str) -> String {
 pub fn load_config<T: de::DeserializeOwned>(filename: &str) -> T where T: std::default::Default + serde::Serialize{
     let path = format!("{}/{}", CONFIG_PATH_PREFIX, &filename);
     if !Path::new(&path).exists() {
-        File::create(format!("{}/{}", "", filename)).expect_err(format!("Can't create {}", filename).as_str());
-        save_config(&filename, T::default()).expect_err(format!("Can't save {}", filename).as_str());
+        //File::create(format!("{}/{}", "", filename)).expect_err(format!("Can't create {}", filename).as_str());
+        save_config(&filename, T::default()).expect(format!("Can't save {}", filename).as_str());
         return load_config(filename);
     }
 
