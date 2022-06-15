@@ -96,12 +96,27 @@ pub struct BridgeConfig {
     pub bridgeid: String,
     pub timezone: String,
     pub linkbutton: LinkButton,
+    pub hue_users: Vec<HueUser>,
 }
+// #[derive(Serialize, Deserialize, Debug, Clone)]
+// #[serde(untagged)]
+// pub enum HueUsers{
+//     HashMap(u8, HueUser)
+// }
+
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct LinkButton {
     pub lastlinkbuttonpushed: u64,
     pub pressed: bool
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct HueUser {
+    pub devicetype: String,
+    pub key: String,
+    pub date_created: String,
+    pub date_last_connected: String,
 }
 
 // Implement defaults for BridgeConfig
@@ -121,6 +136,7 @@ impl Default for BridgeConfig {
                 lastlinkbuttonpushed: 0,
                 pressed: false
             },
+            hue_users: Vec::new(),
         }
     }
 }
