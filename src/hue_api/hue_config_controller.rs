@@ -3,18 +3,22 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
+use chrono::Utc;
 use mac_address::get_mac_address;
-use uuid::{v1::{Timestamp, Context}, Uuid};
+use uuid::{
+    v1::{Context, Timestamp},
+    Uuid,
+};
 
 // use crate::device_model::{DeviceMap, Device};
 use crate::{
-    hue_api::hue_config_model::{load_bridge_config, load_devices},
-    util::mac_addr_to_bridge_id,
+    hue_api::hue_config_model::{load_devices},
+    util::{mac_addr_to_bridge_id, load_config, save_config},
 };
 
 use super::{
     device_model::Device,
-    hue_config_model::{BridgeConfig, DeviceMap},
+    hue_config_model::{BridgeConfig, DeviceMap, HueUser},
 };
 
 // lazy_static!{
@@ -26,12 +30,12 @@ pub struct HueConfigControllerState {
 }
 
 impl HueConfigControllerState {
-    pub fn get_controller(&self) -> std::sync::MutexGuard<HueConfigController>  {
-        self.hue_config_controller.lock().unwrap()
+    pub fn get_controller(&self) -> HueConfigController {
+        self.hue_config_controller.lock().unwrap().clone()
     }
 
     pub fn get_bridge_config(&self) -> BridgeConfig {
-       self.get_controller().bridge_config.clone()
+        self.get_controller().bridge_config.clone()
     }
 }
 
@@ -46,7 +50,7 @@ impl HueConfigController {
     pub fn new() -> HueConfigController {
         println!("hueconfigcontroller init");
         let device_map = load_devices();
-        let mut bridge_config = load_bridge_config();
+        let mut bridge_config = load_config::<BridgeConfig>("Bridge.yaml");
 
         // TODO: Proper error handling
         // TODO: Check for mac and override if not set/different, source of truth should be get_mac_address()
@@ -58,6 +62,10 @@ impl HueConfigController {
             bridge_config: bridge_config,
             device_array: Vec::new(),
         }
+    }
+
+    pub fn save(&self) {
+        save_config("Bridge.yaml", self.bridge_config.clone()).expect("Failed to save bridge config");
     }
 
     pub fn get_device_list(&self) -> DeviceMap {
@@ -75,19 +83,49 @@ impl HueConfigController {
             .as_secs();
         let millis_ellapsed = unix_timestamp - &self.bridge_config.linkbutton.lastlinkbuttonpushed;
 
+
+        self.bridge_config.linkbutton.pressed = false;
+
         if ((millis_ellapsed as i64) / 1000) <= 30 {
             self.bridge_config.linkbutton.pressed = true;
         }
-
-        self.bridge_config.linkbutton.pressed = false;
         return self.bridge_config.linkbutton.pressed;
+    }
+
+    pub fn press_link_button(&mut self) {
+        let unix_timestamp = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
+        self.bridge_config.linkbutton.lastlinkbuttonpushed = unix_timestamp;
     }
 
     pub fn add_user(&mut self, devicetype: &str) -> String {
         let context = Context::new(rand::random::<u16>());
         let ts = Timestamp::from_unix(&context, 1497624119, 1234);
-        // TODO: Add user to config
-        return Uuid::new_v1(ts, &[1, 2, 3, 4, 5, 6]).to_string();  
+        let uuid = Uuid::new_v1(ts, &[1, 2, 3, 4, 5, 6]).to_string();
+        let key: u8 = *self
+            .bridge_config
+            .hue_users
+            .clone()
+            .into_keys()
+            .collect::<Vec<u8>>()
+            .last()
+            .unwrap();
+
+        self.bridge_config.hue_users.insert(
+            key,
+            HueUser {
+                client_key: uuid.clone(),
+                devicetype: devicetype.to_string(),
+                date_created: Utc::now().timestamp().to_string(),
+                date_last_connected: Utc::now().timestamp().to_string(),
+            },
+        );
+
+        self.save();
+
+        return uuid;
     }
 
     // pub fn get_device_by_id(&self, id: &str) -> Option<devices::Device> {

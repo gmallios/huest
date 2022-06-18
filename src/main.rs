@@ -4,14 +4,12 @@ use hue_mdns::start_hue_mdns;
 use rocket::{
     http::Status,
     response::{content, status},
-    Config,
 };
 use ssdp::start_ssdp_broadcast;
 use std::{
     fs,
     sync::{Arc, Mutex},
     thread,
-    time::Duration,
 };
 
 #[macro_use]
@@ -60,7 +58,6 @@ async fn rocket() -> _ {
 
     thread::spawn(|| start_ssdp_broadcast());
     thread::spawn(|| start_hue_mdns());
-    
 
     let api_state = HueConfigControllerState {
         hue_config_controller: Arc::new(Mutex::new(HueConfigController::new())),

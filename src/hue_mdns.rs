@@ -14,6 +14,7 @@ pub fn start_hue_mdns() {
     let mut txt_record = TxtRecord::new();
     let context: Arc<Mutex<Context>> = Arc::default();
 
+    // TODO: Use proper bridge id
     txt_record.insert("name", "Philips Hue - 26B8F8").unwrap();
     service.set_name("Philips Hue - 26B8F8");
 
@@ -35,7 +36,7 @@ fn on_service_registered(
 ) {
     let service = result.unwrap();
 
-    println!("Service registered: {:?}", service);
+    // println!("Service registered: {:?}", service);
 
     let context = context
         .as_ref()
@@ -45,7 +46,7 @@ fn on_service_registered(
         .clone();
 
     context.lock().unwrap().service_name = service.name().clone();
-
-    println!("Context: {:?}", context);
+    println!("Hue mDNS service registered: {:?}", service);
+    // println!("Context: {:?}", context);
 
 }

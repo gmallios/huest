@@ -8,6 +8,8 @@ use std::{
 
 use serde::{Deserialize, Serialize, de};
 
+use crate::util::save_config;
+
 use super::device_model::Device;
 
 
@@ -21,52 +23,7 @@ pub fn load_devices() -> DeviceMap {
 
 
 
-pub fn load_bridge_config() -> BridgeConfig {
-    // // Create bridge.yaml if it doesnt exist
-    // if !Path::new("config/Bridge.yaml").exists() {
-    //     let mut file = File::create("config/Bridge.yaml").unwrap();
-    //     save_bridge_config(BridgeConfig::default()).unwrap();
-    // }
 
-    // let file = match fs::read_to_string("config/Bridge.yaml"){
-    //     Ok(file) => file,
-    //     Err(e) => {
-    //         println!("fs::read_to_string error for bridge.yaml");
-    //         std::process::exit(0);
-    //     }
-    // };
-
-    // let bridge_config: BridgeConfig = match serde_yaml::from_str(&file){
-    //     Ok(bridge_config) => bridge_config,
-    //     Err(e) => {
-    //         // Most likely model mismatch
-    //         // Move bridge.yaml to bridge.yaml.bak.error
-    //         // and create a new one
-    //         println!("serde_yaml::from_str error for bridge.yaml");
-    //         println!("Moving to bridge.yaml.bak.error and creating a new one"); 
-    //         fs::rename("config/Bridge.yaml", "config/Bridge.yaml.bak.error").unwrap();
-    //         save_bridge_config(BridgeConfig::default()).unwrap();
-    //         BridgeConfig::default()
-    //     }
-    // };
-
-    // return bridge_config;
-    return crate::util::load_config::<BridgeConfig>(&"Bridge.yaml".to_string());
-}
-
-pub fn save_bridge_config(bridge_config: BridgeConfig) -> Result<(), std::io::Error> {
-    let bridge_config_str = match serde_yaml::to_string(&bridge_config) {
-        Ok(s) => s,
-        Err(e) => {
-            println!("Error: {}", e);
-            return Err(io::Error::new(
-                io::ErrorKind::Other,
-                "Error: Failed to serialize bridge config",
-            ));
-        }
-    };
-    fs::write("config/Bridge.yaml", bridge_config_str)
-}
 
 pub fn save_device_config(device_map: DeviceMap) -> Result<(), std::io::Error> {
     let device_map_str = match serde_yaml::to_string(&device_map) {
@@ -96,7 +53,7 @@ pub struct BridgeConfig {
     pub bridgeid: String,
     pub timezone: String,
     pub linkbutton: LinkButton,
-    pub hue_users: Vec<HueUser>,
+    pub hue_users: HashMap<u8, HueUser>,
 }
 // #[derive(Serialize, Deserialize, Debug, Clone)]
 // #[serde(untagged)]
@@ -114,7 +71,7 @@ pub struct LinkButton {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct HueUser {
     pub devicetype: String,
-    pub key: String,
+    pub client_key: String,
     pub date_created: String,
     pub date_last_connected: String,
 }
@@ -136,7 +93,7 @@ impl Default for BridgeConfig {
                 lastlinkbuttonpushed: 0,
                 pressed: false
             },
-            hue_users: Vec::new(),
+            hue_users: HashMap::new()
         }
     }
 }

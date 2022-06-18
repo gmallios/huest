@@ -18,6 +18,7 @@ clap = { version = "3.1.18", features = ["derive"] }
 zeroconf = "0.10.5"
 uuid = { version = "1.1.2", features = ["v1", "v4", "fast-rng"] }
 rand = "0.8.5"
+chrono = "0.4"
 
 [[bin]]
 name = "huest"
