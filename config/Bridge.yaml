@@ -13,7 +13,7 @@ linkbutton:
   pressed: false
 hue_users:
   0:
-    devicetype: "Hue#SM-G781B"
-    client_key: f3b4958c52a111e7ae12010203040506
-    date_created: "1656354615"
-    date_last_connected: "1656354615"
+    devicetype: "Hue Essentials#SM-G781B"
+    client_key: f3b4958c52a111e78008010203040506
+    date_created: "1656371067"
+    date_last_connected: "1656371067"
