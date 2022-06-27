@@ -90,20 +90,22 @@ async fn main() {
         port: 80,
         ..default
     };
-    let https = rocket::custom(&https_config)
-        .manage(api_state.clone())
-        .mount("/", routes![hello, description_xml])
-        .mount("/api", hue_api::hue_routes())
-        .launch();
-    //let a = Command::new("python3").arg("reverseproxy.py").spawn();
+    // let https = rocket::custom(&https_config)
+    //     .manage(api_state.clone())
+    //     .mount("/", routes![hello, description_xml])
+    //     .mount("/api", hue_api::hue_routes())
+    //     .launch();
+    
+    // Current solution is to use flask to proxy https 
+    let a = Command::new("python3").arg("reverseproxy.py").spawn();
 
     let http = rocket::custom(&http_config)
         .manage(api_state)
         .mount("/", routes![hello, description_xml])
         .mount("/api", hue_api::hue_routes())
-        .launch();
+        .launch().await;
 
-    let _pair = future::try_join(http, https).await;
+    // let _pair = future::try_join(http, https).await;
 }
 
 #[get("/")]
