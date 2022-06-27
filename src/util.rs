@@ -1,4 +1,4 @@
-use std::{path::Path, fs::{self, File}, io::{self, Error}};
+use std::{path::Path, fs::{self}, io::{self, Error}};
 use serde::de;
 
 const CONFIG_PATH_PREFIX: &str = "config/";

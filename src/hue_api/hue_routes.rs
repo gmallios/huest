@@ -7,7 +7,7 @@ use rocket::response::content::RawJson;
 use rocket::{
     response::content,
     serde::{json::Json, Deserialize, Serialize},
-    Route, State,
+    State,
 };
 
 #[derive(Serialize)]
@@ -70,11 +70,11 @@ pub fn route_config_post(
         content::RawJson(json!({ "error": { "type": 101, "address": origin, "description": "link button not pressed" } }).to_string());
     }
     let uuid = api_state.get_controller().add_user(&data.devicetype);
-    println!(
-        "devicetype: {}, generateclientkey: {}",
-        data.devicetype,
-        data.generateclientkey.expect("generateclientkey not set")
-    );
+    // println!(
+    //     "devicetype: {}, generateclientkey: {}",
+    //     data.devicetype,
+    //     data.generateclientkey.
+    // );
     let resp = json!([{ "success": { "username": uuid, "clientkey": "321c0c2ebfa7361e55491095b2f5f9db" } }]).to_string();
     content::RawJson(resp)
 }

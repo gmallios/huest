@@ -1,11 +1,10 @@
 use std::{
-    sync::{Arc, Mutex, RwLock},
+    sync::{Arc, Mutex},
     time::{SystemTime, UNIX_EPOCH},
 };
 
 use chrono::Utc;
 use mac_address::get_mac_address;
-use rocket::futures::lock::MutexGuard;
 use uuid::{
     v1::{Context, Timestamp},
     Uuid,

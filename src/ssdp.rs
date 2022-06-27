@@ -1,5 +1,5 @@
 use std::{
-    net::{self, Ipv4Addr, UdpSocket},
+    net::{Ipv4Addr, UdpSocket},
     str::FromStr,
     thread,
     time::Duration,
@@ -31,7 +31,7 @@ pub fn start_ssdp_broadcast() {
     let msg = ssdp_msg.as_bytes();
     let mut buf = [0; 1024];
     for _ in 0..10 {
-        let (number_of_bytes, src_addr) =
+        let (_number_of_bytes, src_addr) =
                 ssdp_socket.recv_from(&mut buf).expect("Didn't receive data");
         // ssdp_socket
         //     .send_to(&msg, "239.255.255.250:1900")

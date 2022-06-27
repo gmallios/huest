@@ -1,14 +1,10 @@
 use std::{
     collections::HashMap,
-    fs::{self, File},
-    io::{self, Write},
-    path::Path,
-    sync::RwLock, os::unix::process,
+    fs::{self},
 };
 
-use serde::{Deserialize, Serialize, de};
+use serde::{Deserialize, Serialize};
 
-use crate::util::save_config;
 
 use super::device_model::Device;
 
@@ -20,24 +16,6 @@ pub fn load_devices() -> DeviceMap {
     return device_list;
 }
 
-
-
-
-
-
-pub fn save_device_config(device_map: DeviceMap) -> Result<(), std::io::Error> {
-    let device_map_str = match serde_yaml::to_string(&device_map) {
-        Ok(s) => s,
-        Err(e) => {
-            println!("Error: {}", e);
-            return Err(io::Error::new(
-                io::ErrorKind::Other,
-                "Error: Failed to serialize device map",
-            ));
-        }
-    };
-    fs::write("config/Devices.yaml", device_map_str)
-}
 
 pub type DeviceMap = HashMap<u8, Device>;
 

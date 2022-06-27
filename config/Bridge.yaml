@@ -2,13 +2,18 @@
 name: ""
 swversion: ""
 apiversion: ""
-mac: ""
+mac: "EE:9C:83:5D:B5:56"
 ipaddress: ""
 gateway: ""
 netmask: ""
-bridgeid: ""
+bridgeid: EE9C83FFFE5DB556
 timezone: ""
 linkbutton:
   lastlinkbuttonpushed: 0
   pressed: false
-hue_users: []
+hue_users:
+  0:
+    devicetype: "Hue#SM-G781B"
+    client_key: f3b4958c52a111e7bebf010203040506
+    date_created: "1656344472"
+    date_last_connected: "1656344472"
