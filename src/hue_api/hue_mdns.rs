@@ -3,6 +3,8 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use zeroconf::prelude::*;
 use zeroconf::{MdnsService, ServiceRegistration, ServiceType, TxtRecord};
+use log::{debug, error, log_enabled, info, Level};
+
 
 #[derive(Default, Debug)]
 pub struct Context {
@@ -46,7 +48,7 @@ fn on_service_registered(
         .clone();
 
     context.lock().unwrap().service_name = service.name().clone();
-    println!("Hue mDNS service registered: {:?}", service);
+    info!("Hue mDNS service registered: {:?}", service);
     // println!("Context: {:?}", context);
 
 }

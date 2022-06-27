@@ -1,15 +1,11 @@
-use bridge::config_get_mac_addr;
-use clap::command;
-use rocket::{
-    config::CipherSuite,
-    config::TlsConfig,
-    http::{
-        tls::rustls::{cipher_suite::TLS13_AES_256_GCM_SHA384, Tls13CipherSuite},
-        Status,
-    },
-    response::{content, status},
-    Config,
+use actix_web::{
+    get,
+    middleware::{self, Logger},
+    web, App, HttpServer, HttpRequest, HttpResponse,
 };
+use bridge::config_get_mac_addr;
+use log::info;
+use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod};
 use ssdp::start_ssdp_broadcast;
 use std::{
     default, fs,
@@ -19,12 +15,12 @@ use std::{
     thread,
 };
 
-use hue_api::hue_config_controller::{HueConfigController, HueConfigControllerState};
 use hue_api::hue_mdns::start_hue_mdns;
-use rocket::futures::future;
+use hue_api::{
+    hue_config_controller::{HueConfigController, HueConfigControllerState},
+    hue_routes,
+};
 
-#[macro_use]
-extern crate rocket;
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
@@ -40,8 +36,8 @@ mod hue_api;
 mod ssdp;
 mod util;
 
-#[rocket::main]
-async fn main() {
+#[actix_web::main]
+async fn main() -> std::io::Result<()> {
     println!("Starting Hue Bridge...");
     // Create HUE_CONFIG_CONTORLLER
 
@@ -58,7 +54,7 @@ async fn main() {
     // Generate SSL Certificates
     match gen_ssl_cert() {
         Ok(_) => {
-            println!("SSL certificates generated!");
+            info!("SSL certificates generated!");
         }
         Err(_) => {
             println!("Failed to generate SSL certificates!");
@@ -69,43 +65,32 @@ async fn main() {
     thread::spawn(|| start_ssdp_broadcast());
     thread::spawn(|| start_hue_mdns());
 
-    let api_state = HueConfigControllerState {
+    let api_state = web::Data::new(HueConfigControllerState {
         hue_config_controller: Arc::new(Mutex::new(HueConfigController::new())),
-    };
+    });
 
-    let default = Config::release_default();
-    let cert_set = CipherSuite::TLS_V13_SET;
-    let tls_config = TlsConfig::from_paths("./ssl/cert.pem", "./ssl/private.pem")
-        .with_preferred_server_cipher_order(true)
-        .with_ciphers([CipherSuite::TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256]);
-    let https_config = Config {
-        address: Ipv4Addr::new(0, 0, 0, 0).into(),
-        tls: Some(tls_config),
-        port: 443,
-        ..default.clone()
-    };
+    let mut openssl_builder = SslAcceptor::mozilla_intermediate(SslMethod::tls()).unwrap();
+    openssl_builder.set_private_key_file("./ssl/private.pem", SslFiletype::PEM);
+    openssl_builder
+        .set_certificate_chain_file("./ssl/cert.pem")
+        .unwrap();
 
-    let http_config = Config {
-        address: Ipv4Addr::new(0, 0, 0, 0).into(),
-        port: 80,
-        ..default
-    };
-    // let https = rocket::custom(&https_config)
-    //     .manage(api_state.clone())
-    //     .mount("/", routes![hello, description_xml])
-    //     .mount("/api", hue_api::hue_routes())
-    //     .launch();
-    
-    // Current solution is to use flask to proxy https 
-    let a = Command::new("python3").arg("reverseproxy.py").spawn();
+    let ssl = true;
 
-    let http = rocket::custom(&http_config)
-        .manage(api_state)
-        .mount("/", routes![hello, description_xml])
-        .mount("/api", hue_api::hue_routes())
-        .launch().await;
+    env_logger::init_from_env(env_logger::Env::new().default_filter_or("debug"));
 
-    // let _pair = future::try_join(http, https).await;
+    HttpServer::new(move || {
+        App::new()
+            .wrap(middleware::NormalizePath::trim())
+            .app_data(api_state.clone())
+            .service(description_xml)
+            .service(hue_routes())
+            .wrap(Logger::default())
+    })
+    //.bind_openssl("0.0.0.0:443", openssl_builder)?
+    .bind("0.0.0.0:80")?
+    .run()
+    .await
 }
 
 #[get("/")]
@@ -114,11 +99,11 @@ async fn hello() -> &'static str {
 }
 
 #[get("/description.xml")]
-async fn description_xml() -> status::Custom<content::RawXml<String>> {
-    status::Custom(
-        Status::Ok,
-        content::RawXml(fs::read_to_string("static/description.xml").unwrap()),
-    )
+async fn description_xml() -> impl actix_web::Responder {
+    let xml_file = fs::read_to_string("./static/description.xml").unwrap();
+    HttpResponse::Ok()
+        .content_type("application/xml")
+        .body(xml_file)
 }
 
 fn gen_ssl_cert() -> Result<std::process::ExitStatus, std::io::Error> {

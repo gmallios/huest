@@ -1,17 +1,14 @@
+use actix_web::{error, get, post, web, HttpResponse, Responder};
+use futures::StreamExt;
+use log::info;
+use serde::{Deserialize, Serialize};
+
 use crate::util::mac_addr_to_bridge_id;
 use crate::{
     bridge::config_get_mac_addr, hue_api::hue_config_controller::HueConfigControllerState,
 };
-use rocket::http::uri::Origin;
-use rocket::response::content::RawJson;
-use rocket::{
-    response::content,
-    serde::{json::Json, Deserialize, Serialize},
-    State,
-};
 
 #[derive(Serialize)]
-#[serde(crate = "rocket::serde")]
 struct HueConfigResponse {
     apiversion: String,
     bridgeid: String,
@@ -42,45 +39,67 @@ impl Default for HueConfigResponse {
     }
 }
 
-//{"success":{"username": "` + username + `"}}
+// //{"success":{"username": "` + username + `"}}
 
-#[macro_export]
-macro_rules! hue_success_json {
-    ($($key:expr => $value:expr),*) => {
-        json!([{ "success": { $($key: $value),* } }]).to_string()
-    };
-}
+// #[macro_export]
+// macro_rules! hue_success_json {
+//     ($($key:expr => $value:expr),*) => {
+//         json!([{ "success": { $($key: $value),* } }]).to_string()
+//     };
+// }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateUserData {
-    devicetype: String,
-    generateclientkey: Option<bool>,
+    pub devicetype: String,
+    pub generateclientkey: bool,
 }
 
-#[post("/", data = "<data>")]
-pub fn route_config_post(
-    origin: &Origin,
-    data: Json<CreateUserData>,
-    api_state: &State<HueConfigControllerState>,
-) -> content::RawJson<String> {
+fn json_resp(body: String) -> HttpResponse {
+    HttpResponse::Ok()
+        .content_type("application/json")
+        .body(body)
+}
+
+#[post("")]
+pub async fn route_config_post(
+    mut payload: web::Payload,
+    api_state: web::Data<HueConfigControllerState>,
+) -> impl Responder {
+    // For some odd reason actix cant deserialize the payload into a CreateUserData
+    // so we have to do it manually.
+    const MAX_SIZE: usize = 262_144; // 256 KB
+
+    let mut body = web::BytesMut::new();
+    while let Some(chunk) = payload.next().await {
+        let chunk = chunk?;
+        // limit max size of in-memory payload
+        if (body.len() + chunk.len()) > MAX_SIZE {
+            return Err(error::ErrorBadRequest("overflow"));
+        }
+        body.extend_from_slice(&chunk);
+    }
+
+    // print
+    println!("{}", String::from_utf8_lossy(&body));
+    let obj = serde_json::from_slice::<CreateUserData>(&body).unwrap();
+
     if !api_state.get_controller().is_link_button_pressed() {
         // 101 Error - Link button not pressed
         // TODO: Define error codes with messages
         // TODO: Implement macro for error response
-        content::RawJson(json!({ "error": { "type": 101, "address": origin, "description": "link button not pressed" } }).to_string());
+        info!("Link button not pressed");
+        let resp = json!([{ "error": { "type": 101, "address": "/api/", "description": "link button not pressed" } }]).to_string();
+        json_resp(resp);
     }
-    let uuid = api_state.get_controller().add_user(&data.devicetype);
-    // println!(
-    //     "devicetype: {}, generateclientkey: {}",
-    //     data.devicetype,
-    //     data.generateclientkey.
-    // );
+
+    let uuid = api_state.get_controller().add_user(&obj.devicetype);
     let resp = json!([{ "success": { "username": uuid, "clientkey": "321c0c2ebfa7361e55491095b2f5f9db" } }]).to_string();
-    content::RawJson(resp)
+    Ok(json_resp(resp))
 }
 
 #[get("/config")]
-pub fn route_config(api_state: &State<HueConfigControllerState>) -> content::RawJson<String> {
+pub async fn route_config(api_state: web::Data<HueConfigControllerState>) -> impl Responder {
     let bridge_config = &api_state.get_controller().bridge_config;
     let bridgeid = &bridge_config.bridgeid;
     let mac = &bridge_config.mac;
@@ -89,39 +108,39 @@ pub fn route_config(api_state: &State<HueConfigControllerState>) -> content::Raw
         mac: mac.to_string(),
         ..HueConfigResponse::default()
     };
-    content::RawJson(json!(response).to_string())
+    json_resp(json!(response).to_string())
 }
 
-#[get("/nouser/config")]
-pub fn route_config_no_user(
-    api_state: &State<HueConfigControllerState>,
-) -> content::RawJson<String> {
-    let bridge_config = &api_state.get_controller().bridge_config;
+// #[get("/nouser/config")]
+// pub fn route_config_no_user(
+//     api_state: &State<HueConfigControllerState>,
+// ) -> content::RawJson<String> {
+//     let bridge_config = &api_state.get_controller().bridge_config;
 
-    let bridgeid = &bridge_config.bridgeid;
-    let mac = &bridge_config.mac;
-    let response = HueConfigResponse {
-        bridgeid: bridgeid.to_string(),
-        mac: mac.to_string(),
-        ..HueConfigResponse::default()
-    };
-    content::RawJson(json!(response).to_string())
-}
+//     let bridgeid = &bridge_config.bridgeid;
+//     let mac = &bridge_config.mac;
+//     let response = HueConfigResponse {
+//         bridgeid: bridgeid.to_string(),
+//         mac: mac.to_string(),
+//         ..HueConfigResponse::default()
+//     };
+//     content::RawJson(json!(response).to_string())
+// }
 
-#[get("/<uid>/config")]
-pub fn route_config_with_uid(
-    uid: String,
-    api_state: &State<HueConfigControllerState>,
-) -> content::RawJson<String> {
-    println!("uid: {}", uid);
-    let bridge_config = &api_state.get_controller().bridge_config;
+// #[get("/<uid>/config")]
+// pub fn route_config_with_uid(
+//     uid: String,
+//     api_state: &State<HueConfigControllerState>,
+// ) -> content::RawJson<String> {
+//     println!("uid: {}", uid);
+//     let bridge_config = &api_state.get_controller().bridge_config;
 
-    let bridgeid = &bridge_config.bridgeid;
-    let mac = &bridge_config.mac;
-    let response = HueConfigResponse {
-        bridgeid: bridgeid.to_string(),
-        mac: mac.to_string(),
-        ..HueConfigResponse::default()
-    };
-    content::RawJson(json!(response).to_string())
-}
+//     let bridgeid = &bridge_config.bridgeid;
+//     let mac = &bridge_config.mac;
+//     let response = HueConfigResponse {
+//         bridgeid: bridgeid.to_string(),
+//         mac: mac.to_string(),
+//         ..HueConfigResponse::default()
+//     };
+//     content::RawJson(json!(response).to_string())
+// }
