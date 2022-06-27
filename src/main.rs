@@ -73,37 +73,37 @@ async fn main() {
         hue_config_controller: Arc::new(Mutex::new(HueConfigController::new())),
     };
 
-    let default = Config::default();
-    // let cert_set = CipherSuite::TLS_V13_SET;
-    // let tls_config = TlsConfig::from_paths("./ssl/cert.pem",  "./ssl/private.pem")
-    //     .with_preferred_server_cipher_order(true)
-    //     .with_ciphers([cert_set[1]]);
-    // let https_config = Config {
-    //     address: Ipv4Addr::new(0, 0, 0, 0).into(),
-    //     tls: Some(tls_config),
-    //     port: 443,
-    //     ..default.clone()
-    // };
+    let default = Config::release_default();
+    let cert_set = CipherSuite::TLS_V13_SET;
+    let tls_config = TlsConfig::from_paths("./ssl/cert.pem", "./ssl/private.pem")
+        .with_preferred_server_cipher_order(true)
+        .with_ciphers([CipherSuite::TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256]);
+    let https_config = Config {
+        address: Ipv4Addr::new(0, 0, 0, 0).into(),
+        tls: Some(tls_config),
+        port: 443,
+        ..default.clone()
+    };
 
     let http_config = Config {
         address: Ipv4Addr::new(0, 0, 0, 0).into(),
         port: 80,
         ..default
     };
-    // let https = rocket::custom(&https_config)
-    //     .manage(api_state.clone())
-    //     .mount("/", routes![hello, description_xml])
-    //     .mount("/api", hue_api::hue_routes()).launch();
-    let a = Command::new("python3").arg("reverseproxy.py").spawn();
+    let https = rocket::custom(&https_config)
+        .manage(api_state.clone())
+        .mount("/", routes![hello, description_xml])
+        .mount("/api", hue_api::hue_routes())
+        .launch();
+    //let a = Command::new("python3").arg("reverseproxy.py").spawn();
 
     let http = rocket::custom(&http_config)
         .manage(api_state)
         .mount("/", routes![hello, description_xml])
         .mount("/api", hue_api::hue_routes())
-        .launch()
-        .await;
+        .launch();
 
-    // let _pair = future::try_join(http, https).await;
+    let _pair = future::try_join(http, https).await;
 }
 
 #[get("/")]

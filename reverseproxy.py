@@ -36,8 +36,8 @@ def proxy(path):
 
 if __name__ == '__main__':
     ctx = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-    ctx.load_cert_chain(certfile="ssl/wat.pem")
+    ctx.load_cert_chain(certfile="ssl/cert.pem", keyfile="ssl/private.pem")
     ctx.options |= ssl.OP_CIPHER_SERVER_PREFERENCE
     ctx.set_ciphers('ECDHE-ECDSA-AES128-GCM-SHA256')
-    ctx.set_ecdh_curve('prime256v1')
+    #ctx.set_ecdh_curve('prime256v1')
     app.run(host=bind_ip, port=https_port, ssl_context=ctx)

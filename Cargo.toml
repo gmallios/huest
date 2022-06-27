@@ -9,7 +9,7 @@ edition = "2021"
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.8"
 serde_json = "1.0"
-rocket = { version = "0.5.0-rc.2", default-features = false ,features = ["tls","json"] }
+rocket = { git = "https://github.com/SergioBenitez/Rocket", rev="7275df9fdfab84c493c0fe4cc3f16e66018f2f14", default-features = false ,features = ["tls","json"] }
 mac_address = "1.1.3"
 lazy_static = "1.4.0"
 hex = "0.4.3"
