@@ -1,16 +1,18 @@
 use bridge::config_get_mac_addr;
-use hue_api::hue_config_controller::{HueConfigController, HueConfigControllerState};
-use hue_mdns::start_hue_mdns;
 use rocket::{
     http::Status,
-    response::{content, status},
+    response::{content, status}, Config, config::TlsConfig,
 };
 use ssdp::start_ssdp_broadcast;
 use std::{
     fs,
     sync::{Arc, Mutex},
-    thread,
+    thread, net::Ipv4Addr,
 };
+
+use hue_api::hue_config_controller::{HueConfigController, HueConfigControllerState};
+use hue_api::hue_mdns::start_hue_mdns;
+use rocket::futures::{future};
 
 #[macro_use]
 extern crate rocket;
@@ -26,12 +28,11 @@ static OPENSSL_PATH: &str = "/opt/homebrew/opt/openssl/bin/openssl";
 
 mod bridge;
 mod hue_api;
-mod hue_mdns;
 mod ssdp;
 mod util;
 
-#[launch]
-async fn rocket() -> _ {
+#[rocket::main]
+async fn main() {
     println!("Starting Hue Bridge...");
     // Create HUE_CONFIG_CONTORLLER
 
@@ -63,10 +64,31 @@ async fn rocket() -> _ {
         hue_config_controller: Arc::new(Mutex::new(HueConfigController::new())),
     };
 
-    rocket::build()
+
+    let tls_config = TlsConfig::from_paths("./ssl/cert.pem", "./ssl/private.pem");
+    let https_config = Config {
+        address: Ipv4Addr::new(0, 0, 0, 0).into(),
+        tls: Some(tls_config),
+        port: 443,
+        ..Config::release_default()
+    };
+    
+    let http_config = Config {
+        address: Ipv4Addr::new(0, 0, 0, 0).into(),
+        port: 80,
+        ..Config::release_default()
+    };
+    let https = rocket::custom(&https_config)
+        .manage(api_state.clone())
+        .mount("/", routes![hello, description_xml])
+        .mount("/api", hue_api::hue_routes()).launch();
+
+    let http = rocket::custom(&http_config)
         .manage(api_state)
         .mount("/", routes![hello, description_xml])
-        .mount("/api", hue_api::hue_routes())
+        .mount("/api", hue_api::hue_routes()).launch();
+
+    let _pair = future::try_join(http, https).await;
 }
 
 #[get("/")]
