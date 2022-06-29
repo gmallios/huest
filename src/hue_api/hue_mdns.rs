@@ -16,9 +16,11 @@ pub fn start_hue_mdns() {
     let mut txt_record = TxtRecord::new();
     let context: Arc<Mutex<Context>> = Arc::default();
 
+    let bridge_id = "26B8F8";
+
     // TODO: Use proper bridge id
-    txt_record.insert("name", "Philips Hue - 26B8F8").unwrap();
-    service.set_name("Philips Hue - 26B8F8");
+    txt_record.insert("name", &format!("Philips Hue - {}", bridge_id)).unwrap();
+    service.set_name(&format!("Philips Hue - {}", bridge_id));
 
     service.set_registered_callback(Box::new(on_service_registered));
     service.set_context(Box::new(context));
@@ -28,7 +30,7 @@ pub fn start_hue_mdns() {
 
     loop {
         // calling `poll()` will keep this service alive
-        event_loop.poll(Duration::from_secs(0)).unwrap();
+        event_loop.poll(Duration::from_millis(1500)).unwrap();
     }
 }
 
