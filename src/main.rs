@@ -1,10 +1,10 @@
 use actix_web::{
     get,
     middleware::{self, Logger},
-    web, App, HttpServer, HttpRequest, HttpResponse,
+    web, App, HttpRequest, HttpResponse, HttpServer,
 };
 use bridge::config_get_mac_addr;
-use log::info;
+use log::{info, error};
 use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod};
 use ssdp::start_ssdp_broadcast;
 use std::{
@@ -38,7 +38,9 @@ mod util;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    println!("Starting Hue Bridge...");
+    env_logger::init_from_env(env_logger::Env::new().default_filter_or("debug"));
+
+    info!("Starting Hue Bridge...");
     // Create HUE_CONFIG_CONTORLLER
 
     // lazy_static::initialize(&HUE_CONFIG_CONTROLLER);
@@ -57,7 +59,7 @@ async fn main() -> std::io::Result<()> {
             info!("SSL certificates generated!");
         }
         Err(_) => {
-            println!("Failed to generate SSL certificates!");
+            error!("Failed to generate SSL certificates!");
             std::process::exit(1);
         }
     }
@@ -69,6 +71,18 @@ async fn main() -> std::io::Result<()> {
         hue_config_controller: Arc::new(Mutex::new(HueConfigController::new())),
     });
 
+    // Debug thread 
+    // let state = api_state.clone();
+    // thread::spawn(move || {
+    //     loop {
+    //         info!(
+    //                 "linkbutton {}",
+    //                 state.get_controller().is_link_button_pressed()
+    //             );
+    //             thread::sleep(std::time::Duration::from_secs(1));
+    //     }
+    // });
+
     let mut openssl_builder = SslAcceptor::mozilla_intermediate(SslMethod::tls()).unwrap();
     openssl_builder.set_private_key_file("./ssl/private.pem", SslFiletype::PEM);
     openssl_builder
@@ -77,7 +91,7 @@ async fn main() -> std::io::Result<()> {
 
     let ssl = true;
 
-    env_logger::init_from_env(env_logger::Env::new().default_filter_or("debug"));
+    
 
     HttpServer::new(move || {
         App::new()
@@ -87,7 +101,7 @@ async fn main() -> std::io::Result<()> {
             .service(hue_routes())
             .wrap(Logger::default())
     })
-    //.bind_openssl("0.0.0.0:443", openssl_builder)?
+    .bind_openssl("0.0.0.0:443", openssl_builder)?
     .bind("0.0.0.0:80")?
     .run()
     .await
@@ -106,7 +120,7 @@ async fn description_xml() -> impl actix_web::Responder {
         .body(xml_file)
 }
 
-fn gen_ssl_cert() -> Result<std::process::ExitStatus, std::io::Error> {
+fn gen_ssl_cert() -> Result<std::process::Output, std::io::Error> {
     use std::process::Command;
 
     let mac_addr = config_get_mac_addr().replace(":", "");
@@ -120,7 +134,5 @@ fn gen_ssl_cert() -> Result<std::process::ExitStatus, std::io::Error> {
     Command::new("/bin/sh")
         .arg("-c")
         .arg(cmd)
-        .spawn()
-        .expect("failed to execute process")
-        .wait()
+        .output()
 }
