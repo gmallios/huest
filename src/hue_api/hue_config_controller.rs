@@ -13,8 +13,7 @@ use uuid::{
 
 // use crate::device_model::{DeviceMap, Device};
 use crate::{
-    hue_api::hue_config_model::load_devices,
-    util::{load_config, mac_addr_to_bridge_id, save_config},
+    util::{load_config, mac_addr_to_bridge_id, save_config, create_config_dir_if_not_exists},
 };
 
 use super::{
@@ -50,7 +49,8 @@ pub struct HueConfigController {
 
 impl HueConfigController {
     pub fn new() -> HueConfigController {
-        let device_map = load_devices();
+        create_config_dir_if_not_exists().unwrap();
+        let device_map = load_config::<DeviceMap>("Devices.yaml");
         let mut bridge_config = load_config::<BridgeConfig>("Bridge.yaml");
 
         // TODO: Proper error handling

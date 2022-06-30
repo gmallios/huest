@@ -53,6 +53,8 @@ async fn main() -> std::io::Result<()> {
     //         .get(&0)
     // );
 
+    
+
     // Generate SSL Certificates
     match gen_ssl_cert() {
         Ok(_) => {

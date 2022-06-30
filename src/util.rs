@@ -15,6 +15,13 @@ pub fn mac_addr_to_serial_number(mac_addr: &str) -> String {
 pub fn mac_addr_to_bridge_id(mac_addr: &str) -> String {
     mac_addr_to_serial_number(mac_addr).to_uppercase()
 }
+pub fn create_config_dir_if_not_exists() -> Result<(), Error> {
+    let config_dir = Path::new(CONFIG_PATH_PREFIX);
+    if !config_dir.exists() {
+        fs::create_dir_all(config_dir)?;
+    }
+    Ok(())
+}
 
 pub fn load_config<T: de::DeserializeOwned>(filename: &str) -> T where T: std::default::Default + serde::Serialize{
     let path: &str = &format!("{}/{}", CONFIG_PATH_PREFIX, &filename);
