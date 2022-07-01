@@ -1,7 +1,6 @@
-use std::{path::Path, fs::{self}, io::{self, Error}};
-use serde::de;
 
-const CONFIG_PATH_PREFIX: &str = "config/";
+
+
 
 pub fn mac_addr_to_serial_number(mac_addr: &str) -> String {
     let mac_addr = mac_addr.replace(":", "");
@@ -12,66 +11,75 @@ pub fn mac_addr_to_serial_number(mac_addr: &str) -> String {
     )
 }
 
+
 pub fn mac_addr_to_bridge_id(mac_addr: &str) -> String {
     mac_addr_to_serial_number(mac_addr).to_uppercase()
 }
-pub fn create_config_dir_if_not_exists() -> Result<(), Error> {
-    let config_dir = Path::new(CONFIG_PATH_PREFIX);
-    if !config_dir.exists() {
-        fs::create_dir_all(config_dir)?;
-    }
-    Ok(())
-}
 
-pub fn load_config<T: de::DeserializeOwned>(filename: &str) -> T where T: std::default::Default + serde::Serialize{
-    let path: &str = &format!("{}/{}", CONFIG_PATH_PREFIX, &filename);
-    if !Path::new(&path).exists() {
-        //File::create(format!("{}/{}", "", filename)).expect_err(format!("Can't create {}", filename).as_str());
-        save_config(&filename, T::default()).expect(format!("Can't save {}", filename).as_str());
-        return load_config(filename);
-    }
 
-    let file = match fs::read_to_string(&path) {
-        Ok(file) => file,
-        Err(_) => {
-            println!("Failed to read config file: {}", &path);
-            std::process::exit(1);
+pub mod config {
+    use std::{path::Path, fs::{self}, io::{self, Error}};
+    use serde::de;
+    pub const CONFIG_PATH_PREFIX: &str = "config/";
+
+    pub fn create_config_dir_if_not_exists() -> Result<(), Error> {
+        let config_dir = Path::new(CONFIG_PATH_PREFIX);
+        if !config_dir.exists() {
+            fs::create_dir_all(config_dir)?;
         }
-    };
-
-    let config: T = match serde_yaml::from_str(&file){
-        Ok(config) => config,
-        Err(_) => {
-            //TODO: Create new config and rename bad one to .bad 
-            let new_path: &str = &format!("{}/{}.bad", CONFIG_PATH_PREFIX, &filename);
-            println!("Failed to parse config file: {}", &path);
-            fs::rename(path, new_path).expect(format!("Can't rename {} to {}", path, new_path).as_str());
-            save_config(filename, T::default()).expect(format!("Can't save {}", filename).as_str());
+        Ok(())
+    }
+    
+    pub fn load_config<T: de::DeserializeOwned>(filename: &str) -> T where T: std::default::Default + serde::Serialize{
+        let path: &str = &format!("{}/{}", CONFIG_PATH_PREFIX, &filename);
+        if !Path::new(&path).exists() {
+            //File::create(format!("{}/{}", "", filename)).expect_err(format!("Can't create {}", filename).as_str());
+            save_config(&filename, T::default()).expect(format!("Can't save {}", filename).as_str());
             return load_config(filename);
         }
-    };
-
-    return config;
+    
+        let file = match fs::read_to_string(&path) {
+            Ok(file) => file,
+            Err(_) => {
+                println!("Failed to read config file: {}", &path);
+                std::process::exit(1);
+            }
+        };
+    
+        let config: T = match serde_yaml::from_str(&file){
+            Ok(config) => config,
+            Err(_) => {
+                //TODO: Create new config and rename bad one to .bad 
+                let new_path: &str = &format!("{}/{}.bad", CONFIG_PATH_PREFIX, &filename);
+                println!("Failed to parse config file: {}", &path);
+                fs::rename(path, new_path).expect(format!("Can't rename {} to {}", path, new_path).as_str());
+                save_config(filename, T::default()).expect(format!("Can't save {}", filename).as_str());
+                return load_config(filename);
+            }
+        };
+    
+        return config;
+    }
+    
+    pub fn save_config<T>(filename: &str, config: T) -> Result<(), std::io::Error> where T: serde::Serialize {
+        let path = format!("{}/{}", CONFIG_PATH_PREFIX, &filename);
+        let config_str = match serde_yaml::to_string(&config) {
+            Ok(s) => s,
+            Err(e) => {
+                println!("Error: {}", e);
+                return Err(Error::new(
+                    io::ErrorKind::Other,
+                    "Error: Failed to serialize  config",
+                ));
+            }
+        };
+        fs::write(path, config_str)
+    }
 }
 
-pub fn save_config<T>(filename: &str, config: T) -> Result<(), std::io::Error> where T: serde::Serialize {
-    let path = format!("{}/{}", CONFIG_PATH_PREFIX, &filename);
-    let config_str = match serde_yaml::to_string(&config) {
-        Ok(s) => s,
-        Err(e) => {
-            println!("Error: {}", e);
-            return Err(Error::new(
-                io::ErrorKind::Other,
-                "Error: Failed to serialize  config",
-            ));
-        }
-    };
-    fs::write(path, config_str)
-}
 #[cfg(test)]
 mod util_config {
     use serde::{Serialize, Deserialize};
-    use crate::util::CONFIG_PATH_PREFIX;
 
     #[derive(Debug, PartialEq, Serialize, Deserialize)]
     struct ExampleConfig {
@@ -96,9 +104,9 @@ mod util_config {
             age: 30,
         };
 
-        super::save_config("test.yaml", &example_config).unwrap();
-        let loaded_config: ExampleConfig = super::load_config::<ExampleConfig>("test.yaml");
+        crate::util::config::save_config("test.yaml", &example_config).unwrap();
+        let loaded_config: ExampleConfig = crate::util::config::load_config::<ExampleConfig>("test.yaml");
         assert_eq!(example_config, loaded_config);
-        std::fs::remove_file(format!("{}/test.yaml", CONFIG_PATH_PREFIX)).unwrap();
+        std::fs::remove_file(format!("{}/test.yaml", crate::util::config::CONFIG_PATH_PREFIX)).unwrap();
     }
 }

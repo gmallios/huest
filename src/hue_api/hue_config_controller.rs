@@ -13,7 +13,7 @@ use uuid::{
 
 // use crate::device_model::{DeviceMap, Device};
 use crate::{
-    util::{load_config, mac_addr_to_bridge_id, save_config, create_config_dir_if_not_exists},
+    util::{mac_addr_to_bridge_id, config::{create_config_dir_if_not_exists, load_config, save_config}},
 };
 
 use super::{
