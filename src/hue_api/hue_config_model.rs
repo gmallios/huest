@@ -58,7 +58,7 @@ pub struct HueUser {
 impl Default for BridgeConfig {
     fn default() -> BridgeConfig {
         BridgeConfig {
-            name: String::new(),
+            name: String::from("Huest Bridge"),
             swversion: String::new(),
             apiversion: String::new(),
             mac: String::new(),

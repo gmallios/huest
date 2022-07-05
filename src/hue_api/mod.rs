@@ -12,9 +12,11 @@ pub use hue_mdns as mdns;
 
 
 mod hue_routes;
-use hue_routes::*;
+mod devices;
+mod hue_types;
+mod hue_util;
 
-use self::hue_config_controller::HueConfigControllerState;
+use hue_routes::*;
 
 
 // TODO: Proper module split
@@ -25,17 +27,12 @@ pub fn hue_routes() -> actix_web::Scope {
     web::scope("/api")
         .service(route_config)
         .service(route_config_post)
-        .service(hella)
+        .service(route_config_with_uid)
         .service(press_link_button) // Debug routes
         .service(is_link_button_pressed) // Debug routes
 }
 
-#[get("/example")]
-async fn hella() -> &'static str {
-    "Example hue route!"
-}
 
-// Debug routes
 #[get("/slink")]
 async fn press_link_button(api_state: web::Data<hue_config_controller::HueConfigControllerState>) -> &'static str {
     api_state.get_controller().press_link_button();

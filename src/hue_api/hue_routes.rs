@@ -3,41 +3,13 @@ use futures::StreamExt;
 use log::{debug, info};
 use serde::{Deserialize, Serialize};
 
+use crate::hue_api::hue_types::Responses::HueConfigResponse;
+use crate::hue_api::hue_types::{HueConfigurationResponse};
 use crate::util::mac_addr_to_bridge_id;
 use crate::{
     bridge::config_get_mac_addr, hue_api::hue_config_controller::HueConfigControllerState,
 };
 
-#[derive(Serialize)]
-struct HueConfigResponse {
-    apiversion: String,
-    bridgeid: String,
-    datastoreversion: String,
-    factorynew: bool,
-    mac: String,
-    modelid: String,
-    name: String,
-    replacesbridgeid: String,
-    starterkitid: String,
-    swversion: String,
-}
-
-impl Default for HueConfigResponse {
-    fn default() -> Self {
-        HueConfigResponse {
-            apiversion: "1.50.0".to_string(),
-            bridgeid: mac_addr_to_bridge_id(&config_get_mac_addr()),
-            datastoreversion: "103".to_string(),
-            factorynew: false,
-            mac: config_get_mac_addr(),
-            modelid: "BSB002".to_string(),
-            name: "Rustue".to_string(),
-            replacesbridgeid: "".to_string(),
-            starterkitid: "".to_string(),
-            swversion: "1950207110".to_string(),
-        }
-    }
-}
 
 // //{"success":{"username": "` + username + `"}}
 
@@ -114,7 +86,6 @@ pub async fn route_config(api_state: web::Data<HueConfigControllerState>) -> imp
 //     api_state: &State<HueConfigControllerState>,
 // ) -> content::RawJson<String> {
 //     let bridge_config = &api_state.get_controller().bridge_config;
-
 //     let bridgeid = &bridge_config.bridgeid;
 //     let mac = &bridge_config.mac;
 //     let response = HueConfigResponse {
@@ -125,20 +96,13 @@ pub async fn route_config(api_state: web::Data<HueConfigControllerState>) -> imp
 //     content::RawJson(json!(response).to_string())
 // }
 
-// #[get("/<uid>/config")]
-// pub fn route_config_with_uid(
-//     uid: String,
-//     api_state: &State<HueConfigControllerState>,
-// ) -> content::RawJson<String> {
-//     println!("uid: {}", uid);
-//     let bridge_config = &api_state.get_controller().bridge_config;
-
-//     let bridgeid = &bridge_config.bridgeid;
-//     let mac = &bridge_config.mac;
-//     let response = HueConfigResponse {
-//         bridgeid: bridgeid.to_string(),
-//         mac: mac.to_string(),
-//         ..HueConfigResponse::default()
-//     };
-//     content::RawJson(json!(response).to_string())
-// }
+#[get("/{uid}/config")]
+pub async fn route_config_with_uid(
+    uid: web::Path<String>,
+    api_state: web::Data<HueConfigControllerState>,
+) -> impl Responder {
+    println!("uid: {}", uid);
+    let bridge_config = &api_state.get_controller().bridge_config;
+    let resp = crate::hue_api::hue_types::Responses::HueResponse::from_bridge_config(&HueConfigurationResponse::default(), bridge_config.clone());
+    json_resp(resp)
+}

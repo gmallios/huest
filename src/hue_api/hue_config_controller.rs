@@ -72,7 +72,7 @@ impl HueConfigController {
     }
 
     pub fn get_device_list(&self) -> DeviceMap {
-        return self.device_map.clone();
+        self.device_map.clone()
     }
 
     pub fn set_device_list(&mut self, device_list: DeviceMap) {
@@ -80,6 +80,7 @@ impl HueConfigController {
     }
 
     pub fn is_link_button_pressed(&mut self) -> bool {
+        // TODO: Fix this mess
         // let unix_timestamp = SystemTime::now()
         //     .duration_since(UNIX_EPOCH)
         //     .unwrap()
@@ -91,7 +92,7 @@ impl HueConfigController {
         // if ((millis_ellapsed as i64) / 1000) <= 30 {
         //     self.bridge_config.linkbutton.pressed = true;
         // }
-        return self.bridge_config.linkbutton.pressed;
+        self.bridge_config.linkbutton.pressed
     }
 
     pub fn press_link_button(&mut self) {

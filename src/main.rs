@@ -36,6 +36,10 @@ mod hue_api;
 mod ssdp;
 mod util;
 
+
+
+
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     env_logger::init_from_env(env_logger::Env::new().default_filter_or("debug"));
@@ -66,8 +70,8 @@ async fn main() -> std::io::Result<()> {
         }
     }
 
-    thread::spawn(|| start_ssdp_broadcast());
-    thread::spawn(|| start_hue_mdns());
+    thread::spawn(start_ssdp_broadcast);
+    thread::spawn(start_hue_mdns);
 
     let api_state = web::Data::new(HueConfigControllerState {
         hue_config_controller: Arc::new(Mutex::new(HueConfigController::new())),
@@ -90,9 +94,6 @@ async fn main() -> std::io::Result<()> {
     openssl_builder
         .set_certificate_chain_file("./ssl/cert.pem")
         .unwrap();
-
-    let ssl = true;
-
     
 
     HttpServer::new(move || {
@@ -125,7 +126,7 @@ async fn description_xml() -> impl actix_web::Responder {
 fn gen_ssl_cert() -> Result<std::process::Output, std::io::Error> {
     use std::process::Command;
 
-    let mac_addr = config_get_mac_addr().replace(":", "");
+    let mac_addr = config_get_mac_addr().replace(':', "");
     let serial = format!(
         "{}fffe{}",
         mac_addr[..6].to_string(),
