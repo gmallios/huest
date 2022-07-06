@@ -19,6 +19,11 @@ cargo run
 cargo test
 ```
 
+## For cross-compilation docker and cross is needed
+```sh
+cargo install cross --git https://github.com/cross-rs/cross
+```
+
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
