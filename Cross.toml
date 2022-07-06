@@ -1,0 +1,5 @@
+[target.arm-unknown-linux-gnueabihf]
+pre-build = [
+    "dpkg --add-architecture $CROSS_DEB_ARCH",
+    "apt-get update && apt-get install --assume-yes libavahi-glib-dev:$CROSS_DEB_ARCH"
+]
