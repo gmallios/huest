@@ -8,6 +8,7 @@ pub mod hue_mdns;
 pub use hue_config_controller as config_controller;
 pub use hue_config_model as config_model;
 pub use hue_device_model as device_model;
+#[cfg(not(target_arch = "arm"))]
 pub use hue_mdns as mdns;
 
 

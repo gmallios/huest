@@ -1,3 +1,4 @@
+#![cfg(not(target_arch = "arm"))]
 use std::any::Any;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;

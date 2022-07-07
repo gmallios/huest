@@ -15,7 +15,9 @@ use std::{
     thread,
 };
 
+#[cfg(not(target_arch = "arm"))]
 use hue_api::hue_mdns::start_hue_mdns;
+
 use hue_api::{
     hue_config_controller::{HueConfigController, HueConfigControllerState},
     hue_routes,
@@ -71,6 +73,8 @@ async fn main() -> std::io::Result<()> {
     }
 
     thread::spawn(start_ssdp_broadcast);
+    
+    #[cfg(not(target_arch = "arm"))]
     thread::spawn(start_hue_mdns);
 
     let api_state = web::Data::new(HueConfigControllerState {
