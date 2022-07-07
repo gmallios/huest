@@ -10,7 +10,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.8"
 serde_json = "1.0"
 actix-web = { version = "4.1.0", features = ["openssl"] }
-ureq = "2.4.0"
+ureq = { version = "2.4.0", default-features = false }
 scraper = "0.13.0"
 openssl = { version = "0.10", features = ["v110", "vendored"] }
 env_logger = "0.9.0"
