@@ -1,57 +1,24 @@
-#![cfg(not(target_arch = "arm"))]
-use std::any::Any;
-use std::sync::{Arc, Mutex};
-use std::time::Duration;
-use zeroconf::prelude::*;
-use zeroconf::{MdnsService, ServiceRegistration, ServiceType, TxtRecord};
-use log::{debug, error, log_enabled, info, Level};
+use log::info;
 
-
-#[derive(Default, Debug)]
-pub struct Context {
-    service_name: String,
-}
 
 pub fn start_hue_mdns() {
-    let mut service = MdnsService::new(ServiceType::new("hue", "tcp").unwrap(), 80);
-    let mut txt_record = TxtRecord::new();
-    let context: Arc<Mutex<Context>> = Arc::default();
+    //Disable logging
+    let mut builder = env_logger::Builder::new();
+    builder.parse_filters("libmdns=debug");
+    builder.init();
 
     let bridge_id = "26B8F8";
+    let responder = libmdns::Responder::new().unwrap();
+    let _svc = responder.register(
+        "_hue._tcp".to_owned(),
+        format!("Philips Hue - {}", bridge_id).to_owned(),
+        80,
+        &["path=/"],
+    );
 
-    // TODO: Use proper bridge id
-    txt_record.insert("name", &format!("Philips Hue - {}", bridge_id)).unwrap();
-    service.set_name(&format!("Philips Hue - {}", bridge_id));
-
-    service.set_registered_callback(Box::new(on_service_registered));
-    service.set_context(Box::new(context));
-    service.set_txt_record(txt_record);
-
-    let event_loop = service.register().unwrap();
+    info!("Hue mDNS service registered");
 
     loop {
-        // calling `poll()` will keep this service alive
-        event_loop.poll(Duration::from_millis(1500)).unwrap();
+        ::std::thread::sleep(::std::time::Duration::from_secs(10));
     }
-}
-
-fn on_service_registered(
-    result: zeroconf::Result<ServiceRegistration>,
-    context: Option<Arc<dyn Any>>,
-) {
-    let service = result.unwrap();
-
-    // println!("Service registered: {:?}", service);
-
-    let context = context
-        .as_ref()
-        .unwrap()
-        .downcast_ref::<Arc<Mutex<Context>>>()
-        .unwrap()
-        .clone();
-
-    context.lock().unwrap().service_name = service.name().clone();
-    info!("Hue mDNS service registered: {:?}", service);
-    // println!("Context: {:?}", context);
-
 }
