@@ -22,6 +22,7 @@ cargo test
 ## For cross-compilation docker and cross is needed
 ```sh
 cargo install cross --git https://github.com/cross-rs/cross
+RPI0: cross build --target arm-unknown-linux-gnueabihf
 ```
 
 ## Contributing
