@@ -26,6 +26,8 @@ extern crate serde_json;
 static OPENSSL_PATH: &str = "/usr/bin/openssl";
 #[cfg(target_os = "macos")]
 static OPENSSL_PATH: &str = "/opt/homebrew/opt/openssl/bin/openssl";
+#[cfg(target_os = "windows")]
+static OPENSSL_PATH: &str = "openssl.exe";
 
 mod bridge;
 mod hue_api;
@@ -120,7 +122,6 @@ async fn description_xml() -> impl actix_web::Responder {
 }
 
 fn gen_ssl_cert() -> Result<std::process::Output, std::io::Error> {
-    use std::process::Command;
 
     let mac_addr = config_get_mac_addr().replace(':', "");
     let serial = format!(
@@ -130,8 +131,19 @@ fn gen_ssl_cert() -> Result<std::process::Output, std::io::Error> {
     );
     let decimal_serial = format!("{}", u64::from_str_radix(&serial, 16).unwrap());
     let cmd = format!("{} req -new -days 3650 -config ssl/openssl.conf  -nodes -x509 -newkey ec -pkeyopt ec_paramgen_curve:P-256 -pkeyopt ec_param_enc:named_curve   -subj \"/C=NL/O=Philips Hue/CN={}\" -keyout ssl/private.pem -out ssl/cert.pem -set_serial {}",OPENSSL_PATH,serial,decimal_serial);
-    Command::new("/bin/sh")
-        .arg("-c")
-        .arg(cmd)
-        .output()
+    log::debug!("{}",cmd);
+
+
+    let output = if cfg!(target_os = "windows") {
+        Command::new("cmd")
+            .args(&["/C", &cmd])
+            .output()
+    } else {
+        Command::new("sh")
+            .arg("-c")
+            .arg(cmd)
+            .output()
+    };
+
+    output
 }
