@@ -72,6 +72,18 @@ pub struct Whitelist {
 }
 
 
+fn hue_users_to_whitelist(hue_users: &HashMap<u8, super::config_model::HueUser>) -> HashMap<String, Whitelist> {
+    let mut whitelist: HashMap<String, Whitelist> = HashMap::new();
+    for (key, value) in hue_users {
+        whitelist.insert(value.client_key.clone(), Whitelist {
+            last_use_date: value.date_last_connected.clone(),
+            create_date: value.date_created.clone(),
+            name: value.devicetype.clone(),
+        });
+    }
+    return whitelist;
+}
+
 // TODO: Implement HueResponse for HueConfigurationResponse
 impl Responses::HueResponse for HueConfigurationResponse {
     fn from_bridge_config(&self, bridge_config: BridgeConfig) -> String {
@@ -84,6 +96,7 @@ impl Responses::HueResponse for HueConfigurationResponse {
             timezone: bridge_config.timezone,
             swversion: bridge_config.swversion,
             apiversion: bridge_config.apiversion,
+            whitelist: hue_users_to_whitelist(&bridge_config.hue_users),
             ..Default::default()
         })
         .to_string()

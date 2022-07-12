@@ -75,7 +75,7 @@ async fn main() -> std::io::Result<()> {
     thread::spawn(start_hue_mdns);
 
     let api_state = web::Data::new(HueConfigControllerState {
-        hue_config_controller: Arc::new(Mutex::new(HueConfigController::new())),
+        hue_config_controller: Arc::new(std::sync::RwLock::new(HueConfigController::new())),
     });
 
     // Debug thread

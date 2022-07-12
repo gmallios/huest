@@ -1,5 +1,5 @@
 use std::{
-    sync::{Arc, Mutex},
+    sync::{Arc, Mutex, RwLock},
     time::{SystemTime, UNIX_EPOCH},
 };
 
@@ -27,12 +27,20 @@ use super::{
 
 #[derive(Clone)]
 pub struct HueConfigControllerState {
-    pub hue_config_controller: Arc<Mutex<HueConfigController>>,
+    pub hue_config_controller: Arc<RwLock<HueConfigController>>,
 }
 
 impl HueConfigControllerState {
-    pub fn get_controller(&self) -> std::sync::MutexGuard<HueConfigController> {
-        self.hue_config_controller.lock().unwrap()
+    // pub fn get_controller(&self) -> std::sync::MutexGuard<HueConfigController> {
+    //     self.hue_config_controller.lock().unwrap()
+    // }
+
+    pub fn get_controller_read(&self) -> std::sync::RwLockReadGuard<HueConfigController> {
+        self.hue_config_controller.read().unwrap()
+    }
+
+    pub fn get_controller_write(&self) -> std::sync::RwLockWriteGuard<HueConfigController> {
+        self.hue_config_controller.write().unwrap()
     }
 
     // pub fn get_bridge_config(&self) -> &BridgeConfig {
@@ -79,7 +87,7 @@ impl HueConfigController {
         self.device_map = device_list;
     }
 
-    pub fn is_link_button_pressed(&mut self) -> bool {
+    pub fn is_link_button_pressed(&self) -> bool {
         // TODO: Fix this mess
         // let unix_timestamp = SystemTime::now()
         //     .duration_since(UNIX_EPOCH)
