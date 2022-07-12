@@ -2,11 +2,6 @@ use log::info;
 
 
 pub fn start_hue_mdns() {
-    //Disable logging
-    let mut builder = env_logger::Builder::new();
-    builder.parse_filters("libmdns=debug");
-    builder.init();
-
     let bridge_id = "26B8F8";
     let responder = libmdns::Responder::new().unwrap();
     let _svc = responder.register(

@@ -4,9 +4,10 @@ use actix_web::{
     web, App, HttpRequest, HttpResponse, HttpServer,
 };
 use bridge::config_get_mac_addr;
-use log::{info, error};
+use log::{error, info};
 use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod};
 use ssdp::start_ssdp_broadcast;
+use std::io::Write;
 use std::{
     default, fs,
     net::Ipv4Addr,
@@ -15,7 +16,11 @@ use std::{
     thread,
 };
 
-use hue_api::{hue_mdns::start_hue_mdns, hue_config_controller::{HueConfigController, HueConfigControllerState}, hue_routes};
+use hue_api::{
+    hue_config_controller::{HueConfigController, HueConfigControllerState},
+    hue_mdns::start_hue_mdns,
+    hue_routes,
+};
 
 #[macro_use]
 extern crate lazy_static;
@@ -34,13 +39,13 @@ mod hue_api;
 mod ssdp;
 mod util;
 
-
-
-
-
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    env_logger::init_from_env(env_logger::Env::new().default_filter_or("debug"));
+    let mut builder = env_logger::Builder::from_default_env();
+    builder
+        .filter(None, log::LevelFilter::Debug)
+        .filter(Some("libmdns"), log::LevelFilter::Off)
+        .init();
 
     info!("Starting Hue Bridge...");
     // Create HUE_CONFIG_CONTORLLER
@@ -54,8 +59,6 @@ async fn main() -> std::io::Result<()> {
     //         .get_device_list()
     //         .get(&0)
     // );
-
-    
 
     // Generate SSL Certificates
     match gen_ssl_cert() {
@@ -75,7 +78,7 @@ async fn main() -> std::io::Result<()> {
         hue_config_controller: Arc::new(Mutex::new(HueConfigController::new())),
     });
 
-    // Debug thread 
+    // Debug thread
     // let state = api_state.clone();
     // thread::spawn(move || {
     //     loop {
@@ -88,11 +91,10 @@ async fn main() -> std::io::Result<()> {
     // });
 
     let mut openssl_builder = SslAcceptor::mozilla_intermediate(SslMethod::tls()).unwrap();
-    openssl_builder.set_private_key_file("./ssl/private.pem", SslFiletype::PEM);
+    openssl_builder.set_private_key_file("./ssl/private.pem", SslFiletype::PEM)?;
     openssl_builder
         .set_certificate_chain_file("./ssl/cert.pem")
         .unwrap();
-    
 
     HttpServer::new(move || {
         App::new()
@@ -122,7 +124,6 @@ async fn description_xml() -> impl actix_web::Responder {
 }
 
 fn gen_ssl_cert() -> Result<std::process::Output, std::io::Error> {
-
     let mac_addr = config_get_mac_addr().replace(':', "");
     let serial = format!(
         "{}fffe{}",
@@ -131,18 +132,11 @@ fn gen_ssl_cert() -> Result<std::process::Output, std::io::Error> {
     );
     let decimal_serial = format!("{}", u64::from_str_radix(&serial, 16).unwrap());
     let cmd = format!("{} req -new -days 3650 -config ssl/openssl.conf  -nodes -x509 -newkey ec -pkeyopt ec_paramgen_curve:P-256 -pkeyopt ec_param_enc:named_curve   -subj \"/C=NL/O=Philips Hue/CN={}\" -keyout ssl/private.pem -out ssl/cert.pem -set_serial {}",OPENSSL_PATH,serial,decimal_serial);
-    log::debug!("{}",cmd);
-
 
     let output = if cfg!(target_os = "windows") {
-        Command::new("cmd")
-            .args(&["/C", &cmd])
-            .output()
+        Command::new("cmd").args(&["/C", &cmd]).output()
     } else {
-        Command::new("sh")
-            .arg("-c")
-            .arg(cmd)
-            .output()
+        Command::new("sh").arg("-c").arg(cmd).output()
     };
 
     output
