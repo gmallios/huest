@@ -6,7 +6,6 @@ use actix_web::{
 use bridge::config_get_mac_addr;
 use log::{error, info};
 use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod};
-use ssdp::start_ssdp_broadcast;
 use std::io::Write;
 use std::{
     default, fs,
@@ -22,6 +21,8 @@ use hue_api::{
     hue_routes,
 };
 
+use crate::hue_api::ssdp::start_ssdp_broadcast;
+
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
@@ -36,7 +37,6 @@ static OPENSSL_PATH: &str = "openssl.exe";
 
 mod bridge;
 mod hue_api;
-mod ssdp;
 mod util;
 
 #[actix_web::main]
@@ -45,6 +45,7 @@ async fn main() -> std::io::Result<()> {
     builder
         .filter(None, log::LevelFilter::Debug)
         .filter(Some("libmdns"), log::LevelFilter::Off)
+        .filter(Some("h2"), log::LevelFilter::Off)
         .init();
 
     info!("Starting Hue Bridge...");

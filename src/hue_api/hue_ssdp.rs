@@ -5,6 +5,8 @@ use std::{
     time::Duration,
 };
 
+use log::warn;
+
 
 
 static SSDP_INTERVAL: u64  = 1500;
@@ -15,7 +17,7 @@ pub fn start_ssdp_broadcast() {
     let ssdp_socket = match UdpSocket::bind("0.0.0.0:1900") {
         Ok(socket) => socket,
         Err(e) => {
-            println!("Failed to bind to SSDP socket: {}", e);
+            warn!("Failed to bind to SSDP socket: {}", e);
             return;
         }
     };
