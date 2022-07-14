@@ -19,7 +19,6 @@ use serde::{Deserialize, Serialize};
 
 use super::config_model::BridgeConfig;
 
-// JSON Response for whole config
 
 #[derive(Serialize, Deserialize)]
 pub struct HueConfigurationResponse {
@@ -71,45 +70,13 @@ pub struct Whitelist {
     pub name: String,
 }
 
-
-fn hue_users_to_whitelist(hue_users: &HashMap<u8, super::config_model::HueUser>) -> HashMap<String, Whitelist> {
-    let mut whitelist: HashMap<String, Whitelist> = HashMap::new();
-    for (key, value) in hue_users {
-        whitelist.insert(value.client_key.clone(), Whitelist {
-            last_use_date: value.date_last_connected.clone(),
-            create_date: value.date_created.clone(),
-            name: value.devicetype.clone(),
-        });
-    }
-    return whitelist;
-}
-
-// TODO: Implement HueResponse for HueConfigurationResponse
-impl Responses::HueResponse for HueConfigurationResponse {
-    fn from_bridge_config(&self, bridge_config: BridgeConfig) -> String {
-        json!(HueConfigurationResponse {
-            mac: bridge_config.mac,
-            name: bridge_config.name,
-            ipaddress: bridge_config.ipaddress,
-            netmask: bridge_config.netmask,
-            gateway: bridge_config.gateway,
-            timezone: bridge_config.timezone,
-            swversion: bridge_config.swversion,
-            apiversion: bridge_config.apiversion,
-            whitelist: hue_users_to_whitelist(&bridge_config.hue_users),
-            ..Default::default()
-        })
-        .to_string()
-    }
-}
-
 // Default impl
 impl Default for HueConfigurationResponse {
     fn default() -> HueConfigurationResponse {
         HueConfigurationResponse {
             name: "Huest Bridge".to_string(),
             zigbeechannel: 15,
-            mac: "".to_string(),
+            mac: "".to_owned(),
             dhcp: false,
             ipaddress: "".to_string(),
             netmask: "".to_string(),
