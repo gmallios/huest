@@ -6,14 +6,29 @@ use serde::Serialize;
 use super::{Whitelist, HueConfigurationResponse, Config::{BridgeConfig, HueUser}};
 
 
-pub trait HueResponse {
-    fn from_bridge_config(&self, bridge_config: BridgeConfig) -> String;
+pub trait HueResponse<T> {
+    fn from_bridge_config(&self, bridge_config: BridgeConfig) -> String; // Returns JSON stringified data
+    fn build_from_bconf(&self, bridge_config: BridgeConfig) -> T; // Returns a new instance with data from bridge_config
 }
 
 
 #[derive(Serialize,Default)]
 pub struct DatastoreResponse {
     pub config: HueConfigurationResponse
+}
+
+impl HueResponse<DatastoreResponse> for DatastoreResponse {
+    fn from_bridge_config(&self, bridge_config: BridgeConfig) -> String {
+        json!(DatastoreResponse {
+            config: HueConfigurationResponse::build_from_bconf(&HueConfigurationResponse::default(), bridge_config)
+        }).to_string()
+    }
+
+    fn build_from_bconf(&self, bridge_config: BridgeConfig) -> DatastoreResponse {
+        DatastoreResponse {
+            config: HueConfigurationResponse::build_from_bconf(&HueConfigurationResponse::default(), bridge_config)
+        }
+    }
 }
 
 // TODO: Remove???
@@ -44,8 +59,8 @@ pub fn hue_users_to_whitelist(hue_users: &std::collections::HashMap<u8, HueUser>
     return whitelist;
 }
 
-// TODO: Implement HueResponse for HueConfigurationResponse
-impl HueResponse for HueConfigurationResponse {
+// TODO: Implement all params HueResponse for HueConfigurationResponse
+impl HueResponse<HueConfigurationResponse> for HueConfigurationResponse {
     fn from_bridge_config(&self, bridge_config: BridgeConfig) -> String {
         json!(HueConfigurationResponse {
             mac: bridge_config.mac,
@@ -61,8 +76,24 @@ impl HueResponse for HueConfigurationResponse {
         })
         .to_string()
     }
-}
 
+    fn build_from_bconf(&self, bridge_config: BridgeConfig) -> HueConfigurationResponse {
+        HueConfigurationResponse {
+            mac: bridge_config.mac,
+            name: bridge_config.name,
+            ipaddress: bridge_config.ipaddress,
+            netmask: bridge_config.netmask,
+            gateway: bridge_config.gateway,
+            timezone: bridge_config.timezone,
+            swversion: bridge_config.swversion,
+            apiversion: bridge_config.apiversion,
+            whitelist: hue_users_to_whitelist(&bridge_config.hue_users),
+            ..Default::default()
+        }
+    }
+    
+    
+}
 
 //TODO: Replace config_get_mac_addr
 //TODO: Move to hue_types and implement HueResponse for HueConfigResponse

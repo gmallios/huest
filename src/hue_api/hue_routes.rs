@@ -2,9 +2,7 @@ use actix_web::{error, get, post, web, HttpResponse, Responder};
 use futures::StreamExt;
 use log::{debug, info};
 use serde::{Deserialize, Serialize};
-
-use crate::hue_api::hue_types::Responses::HueConfigResponse;
-use crate::hue_api::hue_types::{HueConfigurationResponse};
+use crate::hue_api::hue_types::Responses::*;
 use crate::util::mac_addr_to_bridge_id;
 use crate::{
     bridge::config_get_mac_addr, hue_api::hue_config_controller::HueConfigControllerState,
@@ -103,6 +101,6 @@ pub async fn route_config_with_uid(
 ) -> impl Responder {
     println!("uid: {}", uid);
     let bridge_config = &api_state.get_controller_read().bridge_config;
-    let resp = crate::hue_api::hue_types::Responses::HueResponse::from_bridge_config(&HueConfigurationResponse::default(), bridge_config.clone());
+    let resp = crate::hue_api::hue_types::Responses::DatastoreResponse::from_bridge_config(&DatastoreResponse::default(), bridge_config.clone());
     json_resp(resp)
 }
