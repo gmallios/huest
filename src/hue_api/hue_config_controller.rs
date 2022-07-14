@@ -1,5 +1,5 @@
 use std::{
-    sync::{Arc, Mutex, RwLock},
+    sync::{Arc, RwLock},
     time::{SystemTime, UNIX_EPOCH},
 };
 
@@ -13,12 +13,11 @@ use uuid::{
 
 // use crate::device_model::{DeviceMap, Device};
 use crate::{
-    util::{mac_addr_to_bridge_id, config::{create_config_dir_if_not_exists, load_config, save_config}},
+    util::{mac_addr_to_bridge_id, config::{create_config_dir_if_not_exists, load_config, save_config}}, hue_api::hue_types::Config::HueUser,
 };
 
 use super::{
-    device_model::Device,
-    hue_config_model::{BridgeConfig, DeviceMap, HueUser},
+    hue_types::{DeviceMap, Config::BridgeConfig, Device::DeviceItem},
 };
 
 // lazy_static!{
@@ -51,7 +50,7 @@ impl HueConfigControllerState {
 #[derive(Clone)]
 pub struct HueConfigController {
     pub device_map: DeviceMap,
-    pub device_array: Vec<Device>,
+    pub device_array: Vec<DeviceItem>,
     pub bridge_config: BridgeConfig,
 }
 

@@ -6,7 +6,7 @@ use serde::Deserialize;
 // Device.yaml type definitions
 
 #[derive(Serialize, Deserialize,Clone,Debug)]
-pub struct Device {
+pub struct DeviceItem {
     #[serde(rename = "id_v2")]
     pub id_v2: String,
 

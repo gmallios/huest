@@ -1,13 +1,9 @@
 use actix_web::{get, web};
 
 pub mod hue_config_controller;
-pub mod hue_config_model;
-pub mod hue_device_model;
 pub mod hue_mdns;
 
 pub use hue_config_controller as config_controller;
-pub use hue_config_model as config_model;
-pub use hue_device_model as device_model;
 pub use hue_mdns as mdns;
 
 mod devices;

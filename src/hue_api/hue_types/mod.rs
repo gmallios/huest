@@ -12,13 +12,16 @@
 // }
 
 pub mod Responses;
+pub mod Device;
+pub mod Config;
+
+
 
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-use super::config_model::BridgeConfig;
-
+pub type DeviceMap = HashMap<u8, Device::DeviceItem>;
 
 #[derive(Serialize, Deserialize)]
 pub struct HueConfigurationResponse {

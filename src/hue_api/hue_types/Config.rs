@@ -1,23 +1,6 @@
-use std::{
-    collections::HashMap,
-    fs::{self},
-};
+use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-
-
-use super::device_model::Device;
-
-
-
-pub fn load_devices() -> DeviceMap {
-    let file = fs::read_to_string("config/Devices.yaml").unwrap();
-    let device_list: DeviceMap = serde_yaml::from_str(&file).unwrap();
-    return device_list;
-}
-
-
-pub type DeviceMap = HashMap<u8, Device>;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct BridgeConfig {
@@ -33,12 +16,6 @@ pub struct BridgeConfig {
     pub linkbutton: LinkButton,
     pub hue_users: HashMap<u8, HueUser>,
 }
-// #[derive(Serialize, Deserialize, Debug, Clone)]
-// #[serde(untagged)]
-// pub enum HueUsers{
-//     HashMap(u8, HueUser)
-// }
-
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct LinkButton {

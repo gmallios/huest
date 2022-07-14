@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
-use crate::{bridge::config_get_mac_addr, util::mac_addr_to_bridge_id, hue_api::{config_model::BridgeConfig, hue_config_model::HueUser}};
+use crate::{bridge::config_get_mac_addr, util::mac_addr_to_bridge_id};
 use serde::Serialize;
 
-use super::{Whitelist, HueConfigurationResponse};
+use super::{Whitelist, HueConfigurationResponse, Config::{BridgeConfig, HueUser}};
 
 
 pub trait HueResponse {
@@ -34,7 +34,7 @@ pub struct HueConfigResponse {
 
 pub fn hue_users_to_whitelist(hue_users: &std::collections::HashMap<u8, HueUser>) -> HashMap<String, Whitelist> {
     let mut whitelist: HashMap<String, Whitelist> = HashMap::new();
-    for (key, value) in hue_users {
+    for (_key, value) in hue_users {
         whitelist.insert(value.client_key.clone(), super::Whitelist {
             last_use_date: value.date_last_connected.clone(),
             create_date: value.date_created.clone(),
