@@ -22,7 +22,7 @@ use crate::{
 #[serde(rename_all = "camelCase")]
 pub struct CreateUserData {
     pub devicetype: String,
-    pub generateclientkey: bool,
+    pub generateclientkey: Option<bool>,
 }
 
 fn json_resp(body: String) -> HttpResponse {
@@ -58,10 +58,17 @@ pub async fn route_config_post(
             body.extend_from_slice(&chunk);
         }
 
-        debug!("{}", String::from_utf8_lossy(&body));
+        // debug!("{}", String::from_utf8_lossy(&body));
         let obj = serde_json::from_slice::<CreateUserData>(&body).unwrap();
-        let uuid = api_state.get_controller_write().add_user(&obj.devicetype);
-        resp = json!([{ "success": { "username": uuid, "clientkey": "321c0c2ebfa7361e55491095b2f5f9db" } }]).to_string();
+        let (uid, clientkey) = api_state.get_controller_write().add_user(&obj.devicetype, &obj.generateclientkey);
+        match clientkey {
+            Some(key) => {
+                resp = json!([{ "success": { "username": uid, "clientkey": key } }]).to_string();
+            },
+            None => {
+                resp = json!([{ "success": { "username": uid } }]).to_string();
+            }
+        }
     }
     Ok(json_resp(resp))
 }

@@ -112,12 +112,13 @@ impl HueConfigController {
         println!("Link button pressed");
     }
 
-    pub fn add_user(&mut self, devicetype: &str) -> String {
-        let context = Context::new(rand::random::<u16>());
-        let ts = Timestamp::from_unix(&context, 1497624119, 1234);
-        let uuid = Uuid::new_v1(ts, &[1, 2, 3, 4, 5, 6])
-            .to_string()
-            .replace("-", "");
+    pub fn add_user(&mut self, devicetype: &str, generate_client_key: &Option<bool>) -> (String, Option<String>) {
+        // let context = Context::new(rand::random::<u16>());
+        // let ts = Timestamp::from_unix(&context, Utc::now().to_, None);
+        // let uuid = Uuid::new_v1(ts, &[1, 2, 3, 4, 5, 6])
+        //     .to_string()
+        //     .replace("-", "");
+        let uuid = Uuid::new_v4().to_string().replace("-", "");
 
         let mut keys = self
             .bridge_config
@@ -126,7 +127,7 @@ impl HueConfigController {
             .into_keys()
             .collect::<Vec<u8>>();
         keys.sort();
-        info!("{:?}", keys);
+        //info!("{:?}", keys);
         let fkey = match keys.last() {
             Some(k) => {
                 info!("key {}", k);
@@ -149,7 +150,14 @@ impl HueConfigController {
 
         self.save();
 
-        return uuid;
+        match generate_client_key {
+            Some(true) => (uuid, Some(Uuid::new_v4().to_string().replace("-", ""))),
+            _ => (uuid, None),
+        }
+    }
+
+    fn user_exists(&self, client_key: &str) -> bool {
+        self.bridge_config.clone().hue_users.into_values().any(|user| user.client_key == client_key)
     }
 
     // pub fn get_device_by_id(&self, id: &str) -> Option<devices::Device> {
