@@ -20,10 +20,6 @@ use super::{
     hue_types::{DeviceMap, Config::BridgeConfig, Device::DeviceItem},
 };
 
-// lazy_static!{
-//     pub static ref HUE_CONFIG_CONTROLLER: Arc<Mutex<HueConfigController>> = Arc::new(Mutex::new(HueConfigController::new()));
-// }
-
 #[derive(Clone)]
 pub struct HueConfigControllerState {
     pub hue_config_controller: Arc<RwLock<HueConfigController>>,
