@@ -126,11 +126,13 @@ impl HueConfigController {
             .clone()
             .into_keys()
             .collect::<Vec<u8>>();
+
         keys.sort();
+        
         //info!("{:?}", keys);
         let fkey = match keys.last() {
             Some(k) => {
-                info!("key {}", k);
+                //info!("key {}", k);
                 k + 1
             }
             None => 0,
@@ -156,7 +158,7 @@ impl HueConfigController {
         }
     }
 
-    fn user_exists(&self, client_key: &str) -> bool {
+    pub fn user_exists(&self, client_key: &str) -> bool {
         self.bridge_config.clone().hue_users.into_values().any(|user| user.client_key == client_key)
     }
 

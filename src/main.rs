@@ -1,18 +1,17 @@
 use actix_web::{
     get,
     middleware::{self, Logger},
-    web, App, HttpRequest, HttpResponse, HttpServer,
+    web, App, HttpResponse, HttpServer,
 };
 use bridge::config_get_mac_addr;
-use log::{error, info};
-use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod};
-use std::io::Write;
+use log::{error, info, warn};
+use rustls::{ServerConfig, Certificate, PrivateKey};
+use rustls_pemfile::{certs, pkcs8_private_keys};
 use std::{
-    default, fs,
-    net::Ipv4Addr,
+    fs::{self, File},
     process::Command,
-    sync::{Arc, Mutex},
-    thread,
+    sync::{Arc},
+    thread, io::BufReader,
 };
 
 use hue_api::{
@@ -28,6 +27,10 @@ extern crate lazy_static;
 #[macro_use]
 extern crate serde_json;
 
+// This openssl path is used for creating the TLS certificate.
+// TODO: Find a better way to do this in order to support other Platforms which do not have openssl. 
+//       rcgen crate is a good candidate.
+// Generaly we prefer pure rust implementations of various functions in order to avoid the need for external dependencies.
 #[cfg(target_os = "linux")]
 static OPENSSL_PATH: &str = "/usr/bin/openssl";
 #[cfg(target_os = "macos")]
@@ -49,7 +52,6 @@ async fn main() -> std::io::Result<()> {
         .init();
 
     info!("Starting Hue Bridge...");
-    // Create HUE_CONFIG_CONTORLLER
 
     // lazy_static::initialize(&HUE_CONFIG_CONTROLLER);
     // println!(
@@ -91,11 +93,6 @@ async fn main() -> std::io::Result<()> {
     //     }
     // });
 
-    let mut openssl_builder = SslAcceptor::mozilla_intermediate(SslMethod::tls()).unwrap();
-    openssl_builder.set_private_key_file("./ssl/private.pem", SslFiletype::PEM)?;
-    openssl_builder
-        .set_certificate_chain_file("./ssl/cert.pem")
-        .unwrap();
 
     HttpServer::new(move || {
         App::new()
@@ -105,10 +102,40 @@ async fn main() -> std::io::Result<()> {
             .service(hue_routes())
             .wrap(Logger::default())
     })
-    .bind_openssl("0.0.0.0:443", openssl_builder)?
+    // .bind_openssl("0.0.0.0:443", openssl_builder)?
+    .bind_rustls("0.0.0.0:443", load_rustls_config())?
     .bind("0.0.0.0:80")?
     .run()
     .await
+}
+
+fn load_rustls_config() -> rustls::ServerConfig {
+    let config = ServerConfig::builder()
+    .with_safe_defaults()
+    .with_no_client_auth();
+
+    let cert_file = &mut BufReader::new(File::open("./ssl/cert.pem").unwrap());
+    let key_file = &mut BufReader::new(File::open("./ssl/private.pem").unwrap());
+
+    // convert files to key/cert objects
+    let cert_chain = certs(cert_file)
+        .unwrap()
+        .into_iter()
+        .map(Certificate)
+        .collect();
+    let mut keys: Vec<PrivateKey> = pkcs8_private_keys(key_file)
+        .unwrap()
+        .into_iter()
+        .map(PrivateKey)
+        .collect();
+
+    // exit if no keys could be parsed
+    if keys.is_empty() {
+        warn!("Could not locate PKCS 8 private keys.");
+        std::process::exit(1);
+    }
+
+    config.with_single_cert(cert_chain, keys.remove(0)).unwrap()
 }
 
 #[get("/")]
