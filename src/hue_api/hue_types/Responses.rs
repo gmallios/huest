@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{bridge::config_get_mac_addr, util::mac_addr_to_bridge_id};
+use crate::{util::mac_addr_to_bridge_id, bridge::get_mac_addr};
 use serde::Serialize;
 
 use super::{Whitelist, HueConfigurationResponse, Config::{BridgeConfig, HueUser}};
@@ -102,10 +102,10 @@ impl Default for HueConfigResponse {
     fn default() -> Self {
         HueConfigResponse {
             apiversion: "1.50.0".to_string(),
-            bridgeid: mac_addr_to_bridge_id(&config_get_mac_addr()),
+            bridgeid: mac_addr_to_bridge_id(&get_mac_addr()),
             datastoreversion: "103".to_string(),
             factorynew: false,
-            mac: config_get_mac_addr(),
+            mac: get_mac_addr(),
             modelid: "BSB002".to_string(),
             name: "Rustue".to_string(),
             replacesbridgeid: "".to_string(),
