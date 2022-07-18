@@ -3,7 +3,7 @@ use actix_web::{
     middleware::{self, Logger},
     web, App, HttpResponse, HttpServer,
 };
-use bridge::config_get_mac_addr;
+use bridge::{get_mac_addr};
 use log::{error, info, warn};
 use rustls::{ServerConfig, Certificate, PrivateKey};
 use rustls_pemfile::{certs, pkcs8_private_keys};
@@ -53,7 +53,7 @@ async fn main() -> std::io::Result<()> {
 
     info!("Starting Hue Bridge...");
 
-    // lazy_static::initialize(&HUE_CONFIG_CONTROLLER);
+    //lazy_static::initialize(&bridge::BRIDGE_PARAMS);
     // println!(
     //     "{:?}",
     //     HUE_CONFIG_CONTROLLER
@@ -102,7 +102,6 @@ async fn main() -> std::io::Result<()> {
             .service(hue_routes())
             .wrap(Logger::default())
     })
-    // .bind_openssl("0.0.0.0:443", openssl_builder)?
     .bind_rustls("0.0.0.0:443", load_rustls_config())?
     .bind("0.0.0.0:80")?
     .run()
@@ -152,7 +151,7 @@ async fn description_xml() -> impl actix_web::Responder {
 }
 
 fn gen_ssl_cert() -> Result<std::process::Output, std::io::Error> {
-    let mac_addr = config_get_mac_addr().replace(':', "");
+    let mac_addr = get_mac_addr().replace(':', "");
     let serial = format!(
         "{}fffe{}",
         mac_addr[..6].to_string(),

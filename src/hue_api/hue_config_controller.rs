@@ -57,7 +57,7 @@ impl HueConfigController {
         let mut bridge_config = load_config::<BridgeConfig>("Bridge.yaml");
 
         // TODO: Proper error handling
-        // TODO: Check for mac and override if not set/different, source of truth should be get_mac_address()
+        // TODO: Check for mac and override if not set/different, source of truth should be the mac of the selected interface.
         bridge_config.mac = get_mac_address().unwrap().unwrap().to_string();
         bridge_config.bridgeid = mac_addr_to_bridge_id(bridge_config.mac.as_str());
         bridge_config.linkbutton.pressed = false;

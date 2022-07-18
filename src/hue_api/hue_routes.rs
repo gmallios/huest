@@ -5,11 +5,9 @@ use serde::{Deserialize, Serialize};
 use crate::hue_api::hue_types::Responses::*;
 use crate::util::mac_addr_to_bridge_id;
 use crate::{
-    bridge::config_get_mac_addr, hue_api::hue_config_controller::HueConfigControllerState,
+    hue_api::hue_config_controller::HueConfigControllerState,
 };
 
-
-// //{"success":{"username": "` + username + `"}}
 
 // #[macro_export]
 // macro_rules! hue_success_json {
@@ -86,28 +84,18 @@ pub async fn route_config(api_state: web::Data<HueConfigControllerState>) -> imp
     json_resp(json!(response).to_string())
 }
 
-// #[get("/nouser/config")]
-// pub fn route_config_no_user(
-//     api_state: &State<HueConfigControllerState>,
-// ) -> content::RawJson<String> {
-//     let bridge_config = &api_state.get_controller().bridge_config;
-//     let bridgeid = &bridge_config.bridgeid;
-//     let mac = &bridge_config.mac;
-//     let response = HueConfigResponse {
-//         bridgeid: bridgeid.to_string(),
-//         mac: mac.to_string(),
-//         ..HueConfigResponse::default()
-//     };
-//     content::RawJson(json!(response).to_string())
-// }
+
 
 #[get("/{uid}/config")]
 pub async fn route_config_with_uid(
     uid: web::Path<String>,
     api_state: web::Data<HueConfigControllerState>,
 ) -> impl Responder {
-    println!("uid: {}", uid);
-    let bridge_config = &api_state.get_controller_read().bridge_config;
+    let controller = &api_state.get_controller_read();
+    let bridge_config = &controller.bridge_config;
+
+    println!("user_exists: {}", &controller.user_exists(&uid));
+    
     let resp = crate::hue_api::hue_types::Responses::DatastoreResponse::from_bridge_config(&DatastoreResponse::default(), bridge_config.clone());
     json_resp(resp)
 }
