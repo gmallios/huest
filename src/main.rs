@@ -23,8 +23,6 @@ use hue_api::{
 use crate::hue_api::ssdp::start_ssdp_broadcast;
 
 #[macro_use]
-extern crate lazy_static;
-#[macro_use]
 extern crate serde_json;
 
 // This openssl path is used for creating the TLS certificate.
@@ -53,7 +51,6 @@ async fn main() -> std::io::Result<()> {
 
     info!("Starting Hue Bridge...");
 
-    //lazy_static::initialize(&bridge::BRIDGE_PARAMS);
     // println!(
     //     "{:?}",
     //     HUE_CONFIG_CONTROLLER
@@ -130,7 +127,7 @@ fn load_rustls_config() -> rustls::ServerConfig {
 
     // exit if no keys could be parsed
     if keys.is_empty() {
-        warn!("Could not locate PKCS 8 private keys.");
+        error!("Could not locate PKCS 8 private keys.");
         std::process::exit(1);
     }
 
