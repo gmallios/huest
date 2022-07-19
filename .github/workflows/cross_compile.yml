@@ -30,15 +30,15 @@ jobs:
           toolchain: stable
           target: ${{ matrix.target }}
           override: true
-      - uses: actions-rs/cargo@v1
       - name: Compile
+        uses: actions-rs/cargo@v1  
         id: compile
         with:
           use-cross: true
           command: build
           args: --release --target=${{ matrix.target }}
-      - uses: actions/upload-artifact@v3
-        name: Upload artifact
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
         with:
           name: Binary
           path: |
