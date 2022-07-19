@@ -65,9 +65,9 @@ async fn main() -> std::io::Result<()> {
     //         .get(&0)
     // );
 
-    // if let Some(a) = hue_api::hue_util::get_latest_swversion().await {
-    //     log::debug!("{}", a)
-    // } 
+    if let Some(a) = hue_api::hue_util::get_latest_swversion().await {
+        log::debug!("{}", a)
+    } 
     
 
     // Generate SSL Certificates
