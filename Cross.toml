@@ -1,0 +1,5 @@
+# [target.arm-unknown-linux-gnueabihf]
+# pre-build = [
+#         "export TARGET_CC=arm-linux-gnueabihf-gcc",
+#         "export TARGET_AR=arm-linux-gnueabihf-ar"
+# ]

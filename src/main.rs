@@ -5,8 +5,9 @@ use actix_web::{
 };
 use bridge::{get_mac_addr};
 use log::{error, info, warn};
-use rustls::{ServerConfig, Certificate, PrivateKey};
-use rustls_pemfile::{certs, pkcs8_private_keys};
+use openssl::ssl::{SslAcceptor, SslMethod, SslFiletype};
+//use rustls::{ServerConfig, Certificate, PrivateKey};
+//use rustls_pemfile::{certs, pkcs8_private_keys};
 use std::{
     fs::{self, File},
     process::Command,
@@ -64,9 +65,9 @@ async fn main() -> std::io::Result<()> {
     //         .get(&0)
     // );
 
-    if let Some(a) = hue_api::hue_util::get_latest_swversion().await {
-        log::debug!("{}", a)
-    } 
+    // if let Some(a) = hue_api::hue_util::get_latest_swversion().await {
+    //     log::debug!("{}", a)
+    // } 
     
 
     // Generate SSL Certificates
@@ -100,6 +101,12 @@ async fn main() -> std::io::Result<()> {
     // });
 
 
+    let mut openssl_builder = SslAcceptor::mozilla_intermediate(SslMethod::tls()).unwrap();
+    openssl_builder.set_private_key_file("./ssl/private.pem", SslFiletype::PEM)?;
+    openssl_builder
+        .set_certificate_chain_file("./ssl/cert.pem")
+        .unwrap();
+
     HttpServer::new(move || {
         App::new()
             .wrap(middleware::NormalizePath::trim())
@@ -108,40 +115,41 @@ async fn main() -> std::io::Result<()> {
             .service(hue_routes())
             .wrap(Logger::default())
     })
-    .bind_rustls("0.0.0.0:443", load_rustls_config())?
+    //.bind_rustls("0.0.0.0:443", load_rustls_config())?
+    .bind_openssl("0.0.0.0:443", openssl_builder)?
     .bind("0.0.0.0:80")?
     .run()
     .await
 }
 
-fn load_rustls_config() -> rustls::ServerConfig {
-    let config = ServerConfig::builder()
-    .with_safe_defaults()
-    .with_no_client_auth();
+// fn load_rustls_config() -> rustls::ServerConfig {
+//     let config = ServerConfig::builder()
+//     .with_safe_defaults()
+//     .with_no_client_auth();
 
-    let cert_file = &mut BufReader::new(File::open("./ssl/cert.pem").unwrap());
-    let key_file = &mut BufReader::new(File::open("./ssl/private.pem").unwrap());
+//     let cert_file = &mut BufReader::new(File::open("./ssl/cert.pem").unwrap());
+//     let key_file = &mut BufReader::new(File::open("./ssl/private.pem").unwrap());
 
-    // convert files to key/cert objects
-    let cert_chain = certs(cert_file)
-        .unwrap()
-        .into_iter()
-        .map(Certificate)
-        .collect();
-    let mut keys: Vec<PrivateKey> = pkcs8_private_keys(key_file)
-        .unwrap()
-        .into_iter()
-        .map(PrivateKey)
-        .collect();
+//     // convert files to key/cert objects
+//     let cert_chain = certs(cert_file)
+//         .unwrap()
+//         .into_iter()
+//         .map(Certificate)
+//         .collect();
+//     let mut keys: Vec<PrivateKey> = pkcs8_private_keys(key_file)
+//         .unwrap()
+//         .into_iter()
+//         .map(PrivateKey)
+//         .collect();
 
-    // exit if no keys could be parsed
-    if keys.is_empty() {
-        error!("Could not locate PKCS 8 private keys.");
-        std::process::exit(1);
-    }
+//     // exit if no keys could be parsed
+//     if keys.is_empty() {
+//         error!("Could not locate PKCS 8 private keys.");
+//         std::process::exit(1);
+//     }
 
-    config.with_single_cert(cert_chain, keys.remove(0)).unwrap()
-}
+//     config.with_single_cert(cert_chain, keys.remove(0)).unwrap()
+// }
 
 #[get("/")]
 async fn hello() -> &'static str {
