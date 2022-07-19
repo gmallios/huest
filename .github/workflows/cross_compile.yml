@@ -37,12 +37,9 @@ jobs:
           use-cross: true
           command: build
           args: --release --target=${{ matrix.target }}
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
-          name: Binary
+          name: Huest-${{ matrix.target }}
           path: |
-            ${{ steps.compile.outputs.BUILT_ARCHIVE }}
-            ${{ steps.compile.outputs.BUILT_CHECKSUM }}
+            target/${{ matrix.target }}/release/huest
