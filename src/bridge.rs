@@ -19,7 +19,6 @@ pub struct BridgeParams {
 
 // Source of truth?
 // Should be used exclusively for reads after initialization.
-
 pub static BRIDGE_PARAMS: Lazy<Arc<RwLock<BridgeParams>>> = Lazy::new(|| {
     let iface = get_iface();
     let local_ip = match iface.ipv4.first() {
@@ -29,8 +28,8 @@ pub static BRIDGE_PARAMS: Lazy<Arc<RwLock<BridgeParams>>> = Lazy::new(|| {
             std::process::exit(1);
         }
     };
-    let mut mac_address;
-    let mut gateway_ip;
+    let mac_address;
+    let gateway_ip;
 
     if let (Some(mac), Some(gate)) = (&iface.mac_addr, &iface.gateway) {
         mac_address = mac.to_string();
@@ -83,4 +82,8 @@ pub fn get_mac_addr() -> String {
 
 pub fn get_local_ip() -> String {
     return BRIDGE_PARAMS.read().unwrap().local_ip.to_string();
+}
+
+pub fn get_gateway_ip() -> String {
+    return BRIDGE_PARAMS.read().unwrap().gateway_ip.to_string();
 }

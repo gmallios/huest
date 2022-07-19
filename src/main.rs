@@ -60,6 +60,8 @@ async fn main() -> std::io::Result<()> {
     //         .get(&0)
     // );
 
+    log::debug!("{}", hue_api::hue_util::get_latest_swversion().unwrap());
+
     // Generate SSL Certificates
     match gen_ssl_cert() {
         Ok(_) => {

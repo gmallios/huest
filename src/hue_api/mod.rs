@@ -3,15 +3,17 @@ use actix_web::{get, web};
 pub mod hue_config_controller;
 pub mod hue_mdns;
 pub mod hue_ssdp;
+pub mod hue_util;
 
 pub use hue_config_controller as config_controller;
 pub use hue_mdns as mdns;
 pub use hue_ssdp as ssdp;
+pub use hue_util as util;
 
 mod devices;
 mod hue_routes;
 mod hue_types;
-mod hue_util;
+
 
 use hue_routes::*;
 

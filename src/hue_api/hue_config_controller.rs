@@ -5,7 +5,6 @@ use std::{
 
 use chrono::Utc;
 use log::info;
-use mac_address::get_mac_address;
 use uuid::{
     v1::{Context, Timestamp},
     Uuid,
@@ -13,7 +12,7 @@ use uuid::{
 
 // use crate::device_model::{DeviceMap, Device};
 use crate::{
-    util::{mac_addr_to_bridge_id, config::{create_config_dir_if_not_exists, load_config, save_config}}, hue_api::hue_types::Config::HueUser,
+    util::{mac_addr_to_bridge_id, config::{create_config_dir_if_not_exists, load_config, save_config}}, hue_api::hue_types::Config::HueUser, bridge::{get_gateway_ip, get_mac_addr},
 };
 
 use super::{
@@ -26,9 +25,6 @@ pub struct HueConfigControllerState {
 }
 
 impl HueConfigControllerState {
-    // pub fn get_controller(&self) -> std::sync::MutexGuard<HueConfigController> {
-    //     self.hue_config_controller.lock().unwrap()
-    // }
 
     pub fn get_controller_read(&self) -> std::sync::RwLockReadGuard<HueConfigController> {
         self.hue_config_controller.read().unwrap()
@@ -38,9 +34,6 @@ impl HueConfigControllerState {
         self.hue_config_controller.write().unwrap()
     }
 
-    // pub fn get_bridge_config(&self) -> &BridgeConfig {
-    //     *self.get_controller().bridge_config
-    // }
 }
 
 #[derive(Clone)]
@@ -54,19 +47,22 @@ impl HueConfigController {
     pub fn new() -> HueConfigController {
         create_config_dir_if_not_exists().unwrap();
         let device_map = load_config::<DeviceMap>("Devices.yaml");
-        let mut bridge_config = load_config::<BridgeConfig>("Bridge.yaml");
+        let bridge_config = Self::init_bridge_config(load_config::<BridgeConfig>("Bridge.yaml"));
 
-        // TODO: Proper error handling
-        // TODO: Check for mac and override if not set/different, source of truth should be the mac of the selected interface.
-        bridge_config.mac = get_mac_address().unwrap().unwrap().to_string();
-        bridge_config.bridgeid = mac_addr_to_bridge_id(bridge_config.mac.as_str());
-        bridge_config.linkbutton.pressed = false;
 
         HueConfigController {
             device_map: device_map,
             bridge_config: bridge_config,
             device_array: Vec::new(),
         }
+    }
+
+    fn init_bridge_config(mut bridge_config: BridgeConfig) -> BridgeConfig {
+        bridge_config.mac = get_mac_addr();
+        bridge_config.bridgeid = mac_addr_to_bridge_id(bridge_config.mac.as_str());
+        bridge_config.linkbutton.pressed = false;
+        bridge_config.gateway = get_gateway_ip();
+        bridge_config
     }
 
     pub fn save(&self) {

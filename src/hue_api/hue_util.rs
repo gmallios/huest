@@ -1,4 +1,5 @@
-fn get_latest_swversion() -> Result<String, ureq::Error> {
+pub fn get_latest_swversion() -> Result<String, ureq::Error> {
+    // TODO: Use actixweb::client
     //#experience-fragment-component-b9c8b63f00 > div > div > div > div > p:nth-child(1) > i
 
     let body = ureq::get("https://www.philips-hue.com/en-us/support/release-notes/bridge")
