@@ -37,6 +37,8 @@ jobs:
           use-cross: true
           command: build
           args: --release --target=${{ matrix.target }}
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
