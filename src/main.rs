@@ -47,6 +47,10 @@ async fn main() -> std::io::Result<()> {
         .filter(None, log::LevelFilter::Debug)
         .filter(Some("libmdns"), log::LevelFilter::Off)
         .filter(Some("h2"), log::LevelFilter::Off)
+        .filter(Some("scraper"), log::LevelFilter::Off)
+        .filter(Some("selectors"), log::LevelFilter::Off)
+        .filter(Some("html5ever"), log::LevelFilter::Off)
+        .filter(Some("rustls"), log::LevelFilter::Off)
         .init();
 
     info!("Starting Hue Bridge...");
@@ -60,7 +64,10 @@ async fn main() -> std::io::Result<()> {
     //         .get(&0)
     // );
 
-    log::debug!("{}", hue_api::hue_util::get_latest_swversion().unwrap());
+    if let Some(a) = hue_api::hue_util::get_latest_swversion().await {
+        log::debug!("{}", a)
+    } 
+    
 
     // Generate SSL Certificates
     match gen_ssl_cert() {
