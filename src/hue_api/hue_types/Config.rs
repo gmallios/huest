@@ -2,6 +2,9 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
+use super::Device::HueDeviceMap;
+
+
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct BridgeConfig {
     pub name: String,
@@ -48,7 +51,8 @@ impl Default for BridgeConfig {
                 lastlinkbuttonpushed: 0,
                 pressed: false
             },
-            hue_users: HashMap::new()
+            hue_users: HashMap::new(),
         }
     }
 }
+

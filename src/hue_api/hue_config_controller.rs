@@ -12,11 +12,11 @@ use uuid::{
 
 // use crate::device_model::{DeviceMap, Device};
 use crate::{
-    util::{mac_addr_to_bridge_id, config::{create_config_dir_if_not_exists, load_config, save_config}}, hue_api::hue_types::Config::HueUser, bridge::{get_gateway_ip, get_mac_addr},
+    util::{mac_addr_to_bridge_id, config::{create_config_dir_if_not_exists, load_config, save_config}}, hue_api::hue_types::Config::HueUser, bridge::{get_gateway_ip, get_mac_addr, get_netmask, get_local_ip},
 };
 
 use super::{
-    hue_types::{DeviceMap, Config::BridgeConfig, Device::DeviceItem},
+    hue_types::{Device::{self, HueDeviceMap}, Config::BridgeConfig, Group::HueGroupMap},
 };
 
 #[derive(Clone)]
@@ -38,22 +38,22 @@ impl HueConfigControllerState {
 
 #[derive(Clone)]
 pub struct HueConfigController {
-    pub device_map: DeviceMap,
-    pub device_array: Vec<DeviceItem>,
+    pub device_map: HueDeviceMap,
+    pub group_map: HueGroupMap,
     pub bridge_config: BridgeConfig,
 }
 
 impl HueConfigController {
     pub fn new() -> HueConfigController {
         create_config_dir_if_not_exists().unwrap();
-        let device_map = load_config::<DeviceMap>("Devices.yaml");
+        let device_map = load_config::<HueDeviceMap>("Devices.yaml");
         let bridge_config = Self::init_bridge_config(load_config::<BridgeConfig>("Bridge.yaml"));
 
 
         HueConfigController {
             device_map: device_map,
+            group_map: HueGroupMap::default(), // TODO: Load groups from file
             bridge_config: bridge_config,
-            device_array: Vec::new(),
         }
     }
 
@@ -62,19 +62,24 @@ impl HueConfigController {
         bridge_config.bridgeid = mac_addr_to_bridge_id(bridge_config.mac.as_str());
         bridge_config.linkbutton.pressed = false;
         bridge_config.gateway = get_gateway_ip();
+        bridge_config.netmask = get_netmask();
+        bridge_config.ipaddress = get_local_ip();
         bridge_config
     }
 
     pub fn save(&self) {
+        // TODO: Log error if save fails
         save_config("Bridge.yaml", self.bridge_config.clone())
             .expect("Failed to save bridge config");
+        save_config("Devices.yaml", self.device_map.clone())
+            .expect("Failed to save device map");
     }
 
-    pub fn get_device_list(&self) -> DeviceMap {
+    pub fn get_device_list(&self) -> HueDeviceMap {
         self.device_map.clone()
     }
 
-    pub fn set_device_list(&mut self, device_list: DeviceMap) {
+    pub fn set_device_list(&mut self, device_list: HueDeviceMap) {
         self.device_map = device_list;
     }
 
