@@ -87,3 +87,8 @@ pub fn get_local_ip() -> String {
 pub fn get_gateway_ip() -> String {
     return BRIDGE_PARAMS.read().unwrap().gateway_ip.to_string();
 }
+
+/* I don't know about that... */
+pub fn get_netmask() -> String {
+    return BRIDGE_PARAMS.read().unwrap().iface.ipv4.first().unwrap().netmask.to_string();
+}
