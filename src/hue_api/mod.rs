@@ -23,12 +23,24 @@ use hue_routes::*;
 // All routes under /api
 pub fn hue_routes() -> actix_web::Scope {
     web::scope("/api")
+        .service(press_link_button) // Debug route
+        .service(is_link_button_pressed) // Debug route
+        .service(save_config) // Debug route
         .service(route_config)
         .service(route_config_post)
         .service(route_config_with_uid)
-        .service(press_link_button) // Debug routes
-        .service(is_link_button_pressed) // Debug routes
+        .service(route_uid)
+        
 }
+
+#[get("/save")]
+async fn save_config(
+    api_state: web::Data<hue_config_controller::HueConfigControllerState>,
+) -> &'static str {
+    api_state.get_controller_read().save();
+    "OK"
+}
+
 
 #[get("/slink")]
 async fn press_link_button(
