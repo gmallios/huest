@@ -42,3 +42,15 @@ fn openssl_config() -> SslConnector {
     builder.set_ca_file("./ssl/cacert.pem").unwrap();
     builder.build()
 }
+
+
+#[cfg(test)]
+mod hue_util {
+
+
+    #[actix_rt::test]
+    async fn swversion_fetch() {
+        let swver = crate::hue_api::hue_util::get_latest_swversion().await;
+        assert!(swver.is_some());
+    }
+}

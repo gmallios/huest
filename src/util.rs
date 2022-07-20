@@ -96,8 +96,18 @@ mod util_config {
         }
     }
 
+
+
     #[test]
-    fn test_config_flow() {
+    fn config_save(){
+        use crate::util::config::save_config;
+        let config = ExampleConfig::default();
+        save_config("test_save.yaml", config).unwrap();
+        std::fs::remove_file(format!("{}/test_save.yaml", crate::util::config::CONFIG_PATH_PREFIX)).unwrap();
+    }
+
+    #[test]
+    fn config_flow() {
         // Test both saving and loading config
         let example_config = ExampleConfig {
             name: "John".to_string(),
