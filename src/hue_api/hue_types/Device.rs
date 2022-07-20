@@ -1,10 +1,15 @@
+use std::collections::HashMap;
+
 use serde::Deserialize;
 use serde::Serialize;
 
 // Device.yaml type definitions
+// Questonable name
+// HueLightMap??
+pub type HueDeviceMap = HashMap<u8, HueDeviceItem>;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct DeviceItem {
+pub struct HueDeviceItem {
     #[serde(rename = "id_v2")]
     pub id_v2: String,
     #[serde(rename = "name")]
