@@ -10,12 +10,12 @@ pub use hue_mdns as mdns;
 pub use hue_ssdp as ssdp;
 pub use hue_util as util;
 
+use self::hue_routes::Configuration::*;
+
 mod devices;
 mod hue_routes;
 mod hue_types;
 
-
-use hue_routes::*;
 
 // TODO: Proper module split
 // https://stackoverflow.com/questions/22596920/split-a-module-across-several-files

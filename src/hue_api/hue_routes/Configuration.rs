@@ -2,11 +2,11 @@ use crate::hue_api::hue_types::Responses::*;
 use crate::hue_api::{
     hue_config_controller::HueConfigControllerState, hue_types::Responses::HueConfigurationResponse,
 };
-use crate::util::mac_addr_to_bridge_id;
+
 use actix_web::{error, get, post, web, HttpResponse, Responder};
 use futures::StreamExt;
-use log::{debug, info};
-use serde::{Deserialize, Serialize};
+use log::{debug};
+use serde::{Deserialize};
 
 // #[macro_export]
 // macro_rules! hue_success_json {
@@ -55,7 +55,7 @@ pub async fn route_config_post(
             body.extend_from_slice(&chunk);
         }
 
-        // debug!("{}", String::from_utf8_lossy(&body));
+
         let obj = serde_json::from_slice::<CreateUserData>(&body).unwrap();
         let (uid, clientkey) = api_state
             .get_controller_write()
@@ -91,7 +91,7 @@ pub async fn route_uid(
     api_state: web::Data<HueConfigControllerState>,
 ) -> impl Responder {
     let controller = &api_state.get_controller_read();
-
+    //TODO: Reject if user auth fails
     println!("user_exists: {}", &controller.user_exists(&uid));
 
     let resp = crate::hue_api::hue_types::Responses::DatastoreResponse::from_bridge_config(
@@ -108,7 +108,7 @@ pub async fn route_config_with_uid(
     api_state: web::Data<HueConfigControllerState>,
 ) -> impl Responder {
     let controller = &api_state.get_controller_read();
-
+    //TODO: Reject if user auth fails
     println!("user_exists: {}", &controller.user_exists(&uid));
 
     let resp = HueConfigurationResponse::from_bridge_config(controller.bridge_config.clone(), None, None);
