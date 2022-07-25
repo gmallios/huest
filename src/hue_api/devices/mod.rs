@@ -1,3 +1,5 @@
+pub mod WLED;
+
 struct Device {
     pub ip: String,
     pub port: u16,

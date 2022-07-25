@@ -16,7 +16,7 @@ use crate::{
 };
 
 use super::{
-    hue_types::{Device::{self, HueDeviceMap}, Config::BridgeConfig, Group::HueGroupMap},
+    hue_types::{Device::{self, HueDeviceMap}, Config::BridgeConfig, Group::HueGroupMap}, devices::{LightDevice, WLED::WLEDDevice},
 };
 
 #[derive(Clone)]
@@ -36,11 +36,17 @@ impl HueConfigControllerState {
 
 }
 
-#[derive(Clone)]
 pub struct HueConfigController {
     pub device_map: HueDeviceMap,
     pub group_map: HueGroupMap,
     pub bridge_config: BridgeConfig,
+    pub device_list: DeviceList
+}
+
+// PoC for "converting" device_map to responding device structs
+// Could not get dynamic dispatch to work, so this is a suboptimal way to do it 
+pub struct DeviceList {
+    pub wled: Vec<WLEDDevice>,
 }
 
 impl HueConfigController {
@@ -50,10 +56,20 @@ impl HueConfigController {
         let bridge_config = Self::init_bridge_config(load_config::<BridgeConfig>("Bridge.yaml"));
 
 
+        let device_list = Self::device_list_transform(&device_map);
+
         HueConfigController {
             device_map: device_map,
             group_map: HueGroupMap::default(), // TODO: Load groups from file
             bridge_config: bridge_config,
+            device_list: device_list,
+        }
+    }
+
+    // TODO: Actually implement this
+    fn device_list_transform(device_map: &HueDeviceMap) -> DeviceList {
+        DeviceList {
+            wled: Vec::new(),
         }
     }
 
