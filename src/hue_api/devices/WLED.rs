@@ -8,10 +8,16 @@ pub struct WLEDDevice {
 }
 
 impl LightDevice for WLEDDevice {
-    fn new(&self) -> Self {
-        todo!()
-    }
     
+    fn new(&self) -> Box<dyn LightDevice> {
+        Box::new(WLEDDevice {
+            id: todo!(),
+            name: todo!(),
+            ip: todo!(),
+            port: todo!(),
+        })
+    }
+
     fn get_ip(&self) -> String {
         todo!()
     }
@@ -35,6 +41,8 @@ impl LightDevice for WLEDDevice {
     fn set_brightness(&self, brightness: u8) {
         todo!()
     }
+
+    
 
     
 }

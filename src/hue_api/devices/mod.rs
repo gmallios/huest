@@ -1,14 +1,23 @@
+use self::WLED::WLEDDevice;
+
 pub mod WLED;
 
-struct Device {
+pub struct Device {
     pub ip: String,
     pub port: u16,
     pub mac: String,
     pub name: String,
 }
 
+
+// PoC for "converting" device_map to responding device structs
+// Could not get dynamic dispatch to work, so this is a suboptimal way to do it 
+pub struct LightDeviceList {
+    pub wled: Vec<WLEDDevice>,
+}
+
 pub trait LightDevice {
-    fn new(&self) -> Self;
+    fn new(&self) -> Box<dyn LightDevice>;
     fn get_ip(&self) -> String;
     fn get_port(&self) -> u16;
     fn get_mac(&self) -> String;

@@ -40,14 +40,12 @@ pub struct HueConfigController {
     pub device_map: HueDeviceMap,
     pub group_map: HueGroupMap,
     pub bridge_config: BridgeConfig,
-    pub device_list: DeviceList
+    // Device flow should be parse -> push to list -> e.g call LightDevice.setColor 
+    //                                             -> e.g call LightDevice.status -> Returns JSON in order to build HueDeviceMap
+    // TODO: Rewrite Responses.rs in order to follow this flow
+    pub device_list: Vec<Box<dyn LightDevice + Send + Sync>>, 
 }
 
-// PoC for "converting" device_map to responding device structs
-// Could not get dynamic dispatch to work, so this is a suboptimal way to do it 
-pub struct DeviceList {
-    pub wled: Vec<WLEDDevice>,
-}
 
 impl HueConfigController {
     pub fn new() -> HueConfigController {
@@ -56,20 +54,13 @@ impl HueConfigController {
         let bridge_config = Self::init_bridge_config(load_config::<BridgeConfig>("Bridge.yaml"));
 
 
-        let device_list = Self::device_list_transform(&device_map);
+        let device_list = Vec::new();
 
         HueConfigController {
             device_map: device_map,
             group_map: HueGroupMap::default(), // TODO: Load groups from file
             bridge_config: bridge_config,
             device_list: device_list,
-        }
-    }
-
-    // TODO: Actually implement this
-    fn device_list_transform(device_map: &HueDeviceMap) -> DeviceList {
-        DeviceList {
-            wled: Vec::new(),
         }
     }
 
