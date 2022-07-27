@@ -9,7 +9,7 @@ use serde::Serialize;
 pub type HueDeviceMap = HashMap<u8, HueDeviceItem>;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct HueDeviceItem {
+pub struct HueDeviceItem { 
     #[serde(rename = "id_v2")]
     pub id_v2: String,
     #[serde(rename = "name")]
@@ -48,25 +48,6 @@ pub struct Startup {
     configured: bool,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct ProtocolCfg {
-    #[serde(rename = "ip")]
-    ip: String,
-    #[serde(rename = "id")]
-    id: Option<String>,
-    #[serde(rename = "backlight")]
-    backlight: Option<bool>,
-    #[serde(rename = "model")]
-    model: Option<String>,
-    #[serde(rename = "ledCount")]
-    led_count: Option<i64>,
-    #[serde(rename = "mdns_name")]
-    mdns_name: Option<String>,
-    #[serde(rename = "mac")]
-    mac: Option<String>,
-    #[serde(rename = "segmentId")]
-    segment_id: Option<i64>,
-}
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct State {
@@ -92,4 +73,32 @@ pub struct State {
     colormode: String,
     #[serde(rename = "reachable")]
     reachable: bool,
+}
+
+// Used for specifying protocol-specific config params
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(untagged)]
+pub enum ProtocolCfg {
+    WLEDProtocolCfg
+}
+
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct WLEDProtocolCfg {
+    #[serde(rename = "ip")]
+    ip: String,
+    #[serde(rename = "id")]
+    id: String,
+    #[serde(rename = "backlight")]
+    backlight: bool,
+    #[serde(rename = "model")]
+    model: String,
+    #[serde(rename = "ledCount")]
+    led_count: i64,
+    #[serde(rename = "mdns_name")]
+    mdns_name: String,
+    #[serde(rename = "mac")]
+    mac: String,
+    #[serde(rename = "segmentId")]
+    segment_id: i64,
 }
