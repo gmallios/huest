@@ -37,7 +37,7 @@ pub async fn get_latest_swversion() -> Option<String> {
 }
 
 fn openssl_config() -> SslConnector {
-    //https://stackoverflow.com/a/62729715
+    //Migrate to this https://github.com/alexcrichton/openssl-probe
     let mut builder = SslConnector::builder(SslMethod::tls()).unwrap();
     builder.set_ca_file("./ssl/cacert.pem").unwrap();
     builder.build()
