@@ -1,3 +1,5 @@
+use serde::{Serialize, Deserialize};
+
 use super::LightDevice;
 
 pub struct WLEDDevice {
@@ -42,7 +44,25 @@ impl LightDevice for WLEDDevice {
         todo!()
     }
 
-    
-
-    
 }
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct WLEDProtocolCfg {
+    #[serde(rename = "ip")]
+    ip: String,
+    #[serde(rename = "id")]
+    id: String,
+    #[serde(rename = "backlight")]
+    backlight: bool,
+    #[serde(rename = "model")]
+    model: String,
+    #[serde(rename = "ledCount")]
+    led_count: i64,
+    #[serde(rename = "mdns_name")]
+    mdns_name: String,
+    #[serde(rename = "mac")]
+    mac: String,
+    #[serde(rename = "segmentId")]
+    segment_id: i64,
+}
+

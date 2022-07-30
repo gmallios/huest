@@ -1,3 +1,4 @@
+use crate::hue_api::hue_routes::SharedController;
 use crate::hue_api::hue_types::Responses::*;
 use crate::hue_api::{
     hue_config_controller::HueConfigControllerState, hue_types::Responses::HueConfigurationResponse,
@@ -31,7 +32,7 @@ fn json_resp(body: String) -> HttpResponse {
 #[post("")]
 pub async fn route_config_post(
     mut payload: web::Payload,
-    api_state: web::Data<HueConfigControllerState>,
+    api_state: SharedController,
 ) -> impl Responder {
     let resp: String;
     if api_state.get_controller_read().is_link_button_pressed() == false {
@@ -73,7 +74,7 @@ pub async fn route_config_post(
 }
 
 #[get("/config")]
-pub async fn route_config(api_state: web::Data<HueConfigControllerState>) -> impl Responder {
+pub async fn route_config(api_state: SharedController) -> impl Responder {
     let bridge_config = &api_state.get_controller_read().bridge_config;
     let bridgeid = &bridge_config.bridgeid;
     let mac = &bridge_config.mac;
@@ -88,7 +89,7 @@ pub async fn route_config(api_state: web::Data<HueConfigControllerState>) -> imp
 #[get("/{uid}")]
 pub async fn route_uid(
     uid: web::Path<String>,
-    api_state: web::Data<HueConfigControllerState>,
+    api_state: SharedController,
 ) -> impl Responder {
     let controller = &api_state.get_controller_read();
     //TODO: Reject if user auth fails
@@ -105,7 +106,7 @@ pub async fn route_uid(
 #[get("/{uid}/config")]
 pub async fn route_config_with_uid(
     uid: web::Path<String>,
-    api_state: web::Data<HueConfigControllerState>,
+    api_state: SharedController,
 ) -> impl Responder {
     let controller = &api_state.get_controller_read();
     //TODO: Reject if user auth fails

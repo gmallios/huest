@@ -3,6 +3,8 @@ use std::collections::HashMap;
 use serde::Deserialize;
 use serde::Serialize;
 
+use crate::hue_api::devices::ProtocolCfg;
+
 // Device.yaml type definitions
 // Questonable name
 // HueLightMap??
@@ -73,32 +75,4 @@ pub struct State {
     colormode: String,
     #[serde(rename = "reachable")]
     reachable: bool,
-}
-
-// Used for specifying protocol-specific config params
-#[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(untagged)]
-pub enum ProtocolCfg {
-    WLEDProtocolCfg
-}
-
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct WLEDProtocolCfg {
-    #[serde(rename = "ip")]
-    ip: String,
-    #[serde(rename = "id")]
-    id: String,
-    #[serde(rename = "backlight")]
-    backlight: bool,
-    #[serde(rename = "model")]
-    model: String,
-    #[serde(rename = "ledCount")]
-    led_count: i64,
-    #[serde(rename = "mdns_name")]
-    mdns_name: String,
-    #[serde(rename = "mac")]
-    mac: String,
-    #[serde(rename = "segmentId")]
-    segment_id: i64,
 }

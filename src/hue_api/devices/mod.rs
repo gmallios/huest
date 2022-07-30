@@ -1,4 +1,6 @@
-use self::WLED::WLEDDevice;
+use serde::{Serialize, Deserialize};
+
+use self::WLED::{WLEDDevice, WLEDProtocolCfg};
 
 pub mod WLED;
 
@@ -35,4 +37,15 @@ struct RGBColorData {
 struct XYColorData {
     pub X: f32,
     pub Y: f32,
+}
+
+
+
+// Used for specifying protocol-specific config params
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[serde(untagged)]
+pub enum ProtocolCfg {
+    #[default]
+    None,
+    WLEDProtocolCfg(WLEDProtocolCfg)
 }
