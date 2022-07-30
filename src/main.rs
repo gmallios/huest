@@ -18,10 +18,10 @@ use std::{
 use hue_api::{
     hue_config_controller::{HueConfigController, HueConfigControllerState},
     hue_mdns::start_hue_mdns,
-    hue_routes,
+    hue_ssdp::start_ssdp_broadcast,
+    hue_routes::get_hue_api_routes
 };
 
-use crate::hue_api::ssdp::start_ssdp_broadcast;
 
 #[macro_use]
 extern crate serde_json;
@@ -112,7 +112,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(middleware::NormalizePath::trim())
             .app_data(api_state.clone())
             .service(description_xml)
-            .service(hue_routes())
+            .service(get_hue_api_routes())
             .wrap(Logger::default())
     })
     //.bind_rustls("0.0.0.0:443", load_rustls_config())?
