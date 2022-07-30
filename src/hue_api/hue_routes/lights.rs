@@ -1,11 +1,11 @@
 use actix_web::{get, post, put, web, Responder, delete};
 use serde::Deserialize;
 
-use crate::hue_api::hue_routes::SharedController;
+use crate::hue_api::hue_routes::{SharedController, UIDParam};
 
 #[post("/{uid}/lights")]
 pub async fn search_for_new_lights(
-    uid: web::Path<String>,
+    uid: UIDParam,
     api_state: SharedController,
 ) -> impl Responder {
     // Sample Response: [ { "success": { "/lights": "Searching for new devices" }}]
@@ -13,7 +13,7 @@ pub async fn search_for_new_lights(
 }
 
 #[get("/{uid}/lights")]
-pub async fn get_all_lights(uid: web::Path<String>, api_state: SharedController) -> impl Responder {
+pub async fn get_all_lights(uid: UIDParam, api_state: SharedController) -> impl Responder {
     // Sample Response:
     // {
     //     "1": {
@@ -85,7 +85,7 @@ pub async fn get_all_lights(uid: web::Path<String>, api_state: SharedController)
 }
 
 #[get("/{uid}/lights/new")]
-pub async fn get_new_lights(uid: web::Path<String>, api_state: SharedController) -> impl Responder {
+pub async fn get_new_lights(uid: UIDParam, api_state: SharedController) -> impl Responder {
     // Sample Response:
     // {
     //     "7": {"name": "Hue Lamp 7"},
@@ -97,7 +97,7 @@ pub async fn get_new_lights(uid: web::Path<String>, api_state: SharedController)
 
 #[get("/{uid}/lights/{light_id}")]
 pub async fn get_light(
-    uid: web::Path<String>,
+    uid: UIDParam,
     light_id: web::Path<String>,
     api_state: SharedController,
 ) -> impl Responder {
@@ -130,7 +130,7 @@ pub struct RenameReq {
 
 #[put("/{uid}/lights/{light_id}")]
 pub async fn rename_light(
-    uid: web::Path<String>,
+    uid: UIDParam,
     light_id: web::Path<String>,
     body: web::Json<RenameReq>,
     api_state: SharedController,
@@ -159,7 +159,7 @@ pub struct NewLightState {
 
 #[put("/{uid}/lights/{light_id}/state")]
 pub async fn set_light_state(
-    uid: web::Path<String>,
+    uid: UIDParam,
     light_id: web::Path<String>,
     body: web::Json<NewLightState>,
     api_state: SharedController,
@@ -176,7 +176,7 @@ pub async fn set_light_state(
 
 #[delete("/{uid}/lights/{light_id}")]
 pub async fn delete_light(
-    uid: web::Path<String>,
+    uid: UIDParam,
     light_id: web::Path<String>,
     api_state: SharedController,
 ) -> impl Responder {

@@ -4,10 +4,12 @@ use self::configuration::*;
 
 use super::hue_config_controller::{self, HueConfigControllerState};
 
-pub mod configuration;
-pub mod lights;
+mod configuration;
+mod lights;
+mod groups;
 
 pub type SharedController = web::Data<HueConfigControllerState>;
+pub type UIDParam = web::Path<String>; 
 
 // All routes under /api
 pub fn get_hue_api_routes() -> actix_web::Scope {

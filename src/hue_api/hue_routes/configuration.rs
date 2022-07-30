@@ -1,4 +1,4 @@
-use crate::hue_api::hue_routes::SharedController;
+use crate::hue_api::hue_routes::{SharedController, UIDParam};
 use crate::hue_api::hue_types::Responses::*;
 use crate::hue_api::{
     hue_config_controller::HueConfigControllerState, hue_types::Responses::HueConfigurationResponse,
@@ -88,7 +88,7 @@ pub async fn route_config(api_state: SharedController) -> impl Responder {
 
 #[get("/{uid}")]
 pub async fn route_uid(
-    uid: web::Path<String>,
+    uid: UIDParam,
     api_state: SharedController,
 ) -> impl Responder {
     let controller = &api_state.get_controller_read();
@@ -105,7 +105,7 @@ pub async fn route_uid(
 
 #[get("/{uid}/config")]
 pub async fn route_config_with_uid(
-    uid: web::Path<String>,
+    uid: UIDParam,
     api_state: SharedController,
 ) -> impl Responder {
     let controller = &api_state.get_controller_read();
