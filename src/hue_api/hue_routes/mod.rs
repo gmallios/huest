@@ -50,9 +50,9 @@ async fn is_link_button_pressed(
 ) -> String {
     println!(
         "is_link_button_pressed {} ",
-        api_state.get_controller_read().is_link_button_pressed()
+        api_state.get_controller_write().is_link_button_pressed()
     );
-    if api_state.get_controller_read().is_link_button_pressed() {
+    if api_state.get_controller_write().is_link_button_pressed() {
         "Link button pressed".to_string()
     } else {
         "Link button not pressed".to_string()

@@ -90,30 +90,22 @@ impl HueConfigController {
         self.device_map = device_list;
     }
 
-    pub fn is_link_button_pressed(&self) -> bool {
-        // TODO: Fix this mess
-        // let unix_timestamp = SystemTime::now()
-        //     .duration_since(UNIX_EPOCH)
-        //     .unwrap()
-        //     .as_secs();
-        // let millis_ellapsed = unix_timestamp - &self.bridge_config.linkbutton.lastlinkbuttonpushed;
+    pub fn is_link_button_pressed(&mut self) -> bool {
+        let timestamp = Utc::now().timestamp();
+        let millis_ellapsed = timestamp - &self.bridge_config.linkbutton.lastlinkbuttonpushed;
 
-        // self.bridge_config.linkbutton.pressed = false;
+        self.bridge_config.linkbutton.pressed = false;
 
-        // if ((millis_ellapsed as i64) / 1000) <= 30 {
-        //     self.bridge_config.linkbutton.pressed = true;
-        // }
+        if (millis_ellapsed <= 30) {
+            self.bridge_config.linkbutton.pressed = true;
+        }
         self.bridge_config.linkbutton.pressed
     }
 
     pub fn press_link_button(&mut self) {
-        let unix_timestamp = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_secs();
-        self.bridge_config.linkbutton.lastlinkbuttonpushed = unix_timestamp;
+        let timestamp = Utc::now().timestamp();
+        self.bridge_config.linkbutton.lastlinkbuttonpushed = timestamp;
         self.bridge_config.linkbutton.pressed = true;
-        println!("Link button pressed");
     }
 
     pub fn add_user(&mut self, devicetype: &str, generate_client_key: &Option<bool>) -> (String, Option<String>) {
