@@ -22,7 +22,7 @@ pub struct BridgeConfig {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct LinkButton {
-    pub lastlinkbuttonpushed: u64,
+    pub lastlinkbuttonpushed: i64,
     pub pressed: bool
 }
 

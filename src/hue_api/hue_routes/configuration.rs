@@ -35,7 +35,7 @@ pub async fn route_config_post(
     api_state: SharedController,
 ) -> impl Responder {
     let resp: String;
-    if api_state.get_controller_read().is_link_button_pressed() == false {
+    if api_state.get_controller_write().is_link_button_pressed() == false {
         // 101 Error - Link button not pressed
         // TODO: Define error codes with messages
         // TODO: Implement macro for error response
