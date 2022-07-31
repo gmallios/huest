@@ -13,14 +13,17 @@ pub type UIDParam = web::Path<String>;
 
 // All routes under /api
 pub fn get_hue_api_routes() -> actix_web::Scope {
+    // TODO: Refactor to use multiple scopes 
     web::scope("/api")
         .service(press_link_button) // Debug route
         .service(is_link_button_pressed) // Debug route
         .service(save_config) // Debug route
-        .service(route_config)
-        .service(route_config_post)
-        .service(route_config_with_uid)
-        .service(route_uid)
+        // Configuration routes
+        .service(get_config)
+        .service(create_user)
+        .service(get_configuration)
+        .service(get_full_datastore)
+        .service(modify_configuration)
         
 }
 

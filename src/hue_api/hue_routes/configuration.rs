@@ -4,7 +4,7 @@ use crate::hue_api::{
     hue_config_controller::HueConfigControllerState, hue_types::Responses::HueConfigurationResponse,
 };
 
-use actix_web::{error, get, post, web, HttpResponse, Responder};
+use actix_web::{error, get, post, web, HttpResponse, Responder, put};
 use futures::StreamExt;
 use log::{debug};
 use serde::{Deserialize};
@@ -30,7 +30,7 @@ fn json_resp(body: String) -> HttpResponse {
 }
 
 #[post("")]
-pub async fn route_config_post(
+pub async fn create_user(
     mut payload: web::Payload,
     api_state: SharedController,
 ) -> impl Responder {
@@ -73,21 +73,9 @@ pub async fn route_config_post(
     Ok(json_resp(resp))
 }
 
-#[get("/config")]
-pub async fn route_config(api_state: SharedController) -> impl Responder {
-    let bridge_config = &api_state.get_controller_read().bridge_config;
-    let bridgeid = &bridge_config.bridgeid;
-    let mac = &bridge_config.mac;
-    let response = HueConfigResponse {
-        bridgeid: bridgeid.to_string(),
-        mac: mac.to_string(),
-        ..HueConfigResponse::default()
-    };
-    json_resp(json!(response).to_string())
-}
 
 #[get("/{uid}")]
-pub async fn route_uid(
+pub async fn get_full_datastore(
     uid: UIDParam,
     api_state: SharedController,
 ) -> impl Responder {
@@ -104,7 +92,7 @@ pub async fn route_uid(
 }
 
 #[get("/{uid}/config")]
-pub async fn route_config_with_uid(
+pub async fn get_configuration(
     uid: UIDParam,
     api_state: SharedController,
 ) -> impl Responder {
@@ -114,4 +102,51 @@ pub async fn route_config_with_uid(
 
     let resp = HueConfigurationResponse::from_bridge_config(controller.bridge_config.clone(), None, None);
     json_resp(resp)
+}
+
+#[get("/config")]
+pub async fn get_config(api_state: SharedController) -> impl Responder {
+    /* Don't know if this is actually needed - Not in documentation */
+    let bridge_config = &api_state.get_controller_read().bridge_config;
+    let bridgeid = &bridge_config.bridgeid;
+    let mac = &bridge_config.mac;
+    let response = HueConfigResponse {
+        bridgeid: bridgeid.to_string(),
+        mac: mac.to_string(),
+        ..HueConfigResponse::default()
+    };
+    json_resp(json!(response).to_string())
+}
+
+#[derive(Deserialize)]
+pub struct NewConfiguration {
+    proxyport: Option<String>,
+    name: Option<String>,
+    swupdate: Option<Swupdate>,
+    proxyaddress: Option<String>,
+    linkbutton: Option<bool>,
+    ipaddress: Option<String>,
+    netmask: Option<String>,
+    gateway: Option<String>,
+    dhcp: Option<bool>,
+    #[serde(rename = "UTC")]
+    utc: Option<String>,
+    timezone: Option<String>,
+    touchlink: Option<bool>,
+    zigbeechannel: Option<u8>,
+}
+
+
+#[put("/{uid}/config")]
+pub async fn modify_configuration(
+    uid: UIDParam,
+    api_state: SharedController,
+    params: web::Json<NewConfiguration>,
+) -> impl Responder {
+    // Sample response: [{"success":{"/config/name":"My bridge"}}]
+    let controller = &api_state.get_controller_write();
+    for obj in params.iter() {
+        debug!("NewConfiguration: {:?}", obj);
+    }
+    "TODO"
 }
