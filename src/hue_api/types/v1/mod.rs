@@ -1,14 +1,14 @@
 use std::collections::BTreeMap;
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use super::Config::HueUser;
 
-pub mod responses;
-pub mod datastore;
 pub mod configuration;
-pub mod light;
+pub mod datastore;
 pub mod group;
+pub mod light;
+pub mod responses;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Portalstate {
@@ -117,7 +117,6 @@ pub struct WhitelistItem {
     pub create_date: String,
     pub name: String,
 }
-
 
 /* Maybe flatten */
 #[derive(Serialize, Deserialize, Clone)]

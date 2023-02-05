@@ -1,5 +1,5 @@
 use crate::hue_api::{
-    hue_routes::{HueApplicationKeyGuard, SharedState},
+    hue_routes::{V2ApiUserGuard, SharedState},
     types::v2::{responses::*, *},
 };
 use actix_web::{get, web, Responder, Result};
@@ -7,7 +7,7 @@ use actix_web::{get, web, Responder, Result};
 #[get("")]
 pub async fn get_all(
     api_state: SharedState,
-    guard: HueApplicationKeyGuard,
+    guard: V2ApiUserGuard,
 ) -> Result<impl Responder> {
     let bridge_config = &api_state.get_controller_read().bridge_config;
     let mut data = vec![

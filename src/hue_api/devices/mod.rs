@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-
 use self::wled::WLEDProtoData;
 
 use super::types::{internal::InternalDevice, v1::light::HueV1LightSimpleItemResponse};
@@ -31,13 +30,11 @@ pub trait LightDevice: Send + Sync {
     fn set_brightness(&self, brightness: u8);
 }
 
-
 pub struct RGBColorData {
     pub red: u8,
     pub green: u8,
     pub blue: u8,
 }
-
 
 pub struct XYColorData {
     pub X: f32,

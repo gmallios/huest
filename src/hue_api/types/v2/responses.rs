@@ -3,9 +3,9 @@ use std::collections::HashMap;
 use serde::Serialize;
 use uuid::Uuid;
 
-use crate::hue_api::{hue_routes::HueApplicationKeyGuard, types::Config::BridgeConfig};
+use crate::hue_api::{hue_routes::V2ApiUserGuard, types::Config::BridgeConfig};
 
-use super::{Rtypes, SimpleResource, Timezone, EmptyObj};
+use super::{EmptyObj, Rtypes, SimpleResource, Timezone};
 // # client_key: c4349881dfa34bf0b6703607342d6650 Original
 
 #[derive(Serialize, Debug)]
@@ -105,7 +105,6 @@ pub struct BridgeResource {
     #[serde(rename = "type")]
     pub btype: String,
 }
-
 
 impl From<&BridgeConfig> for BridgeResource {
     fn from(config: &BridgeConfig) -> Self {
@@ -253,8 +252,8 @@ pub struct GeofenceClient {
     rtype: Rtypes,
 }
 
-impl From<&HueApplicationKeyGuard> for GeofenceClient {
-    fn from(guard: &HueApplicationKeyGuard) -> Self {
+impl From<&V2ApiUserGuard> for GeofenceClient {
+    fn from(guard: &V2ApiUserGuard) -> Self {
         let id = Uuid::new_v5(&Uuid::NAMESPACE_URL, guard.key.as_bytes());
         GeofenceClient {
             id: id.to_string(),
@@ -263,7 +262,6 @@ impl From<&HueApplicationKeyGuard> for GeofenceClient {
         }
     }
 }
-
 
 /* TODO: REMOVE GROUP */
 pub fn behavior_scripts() -> Vec<serde_json::Value> {

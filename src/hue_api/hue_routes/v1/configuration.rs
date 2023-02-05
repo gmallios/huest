@@ -1,12 +1,10 @@
 use std::collections::HashMap;
 
 use crate::hue_api::{
-    hue_routes::{APIUserGuard, SharedState},
+    hue_routes::{V1ApiUserGuard, SharedState},
     types::v1::{
-        configuration::HueV1ConfigurationResponse,
-        datastore::HueV1DatastoreResponse,
-        responses::{HueV1SmallConfigResponse},
-        Swupdate, light::HueV1LightMapResponse,
+        configuration::HueV1ConfigurationResponse, datastore::HueV1DatastoreResponse,
+        light::HueV1LightMapResponse, responses::HueV1SmallConfigResponse, Swupdate,
     },
 };
 use actix_web::{error, get, post, put, web, HttpResponse, Responder};
@@ -75,7 +73,7 @@ pub async fn create_user(mut payload: web::Payload, api_state: SharedState) -> i
 }
 
 #[get("/{uid}")]
-pub async fn get_full_datastore(_uid: APIUserGuard, api_state: SharedState) -> impl Responder {
+pub async fn get_full_datastore(_uid: V1ApiUserGuard, api_state: SharedState) -> impl Responder {
     let controller = &api_state.get_controller_read();
     web::Json(HueV1DatastoreResponse::build(
         &controller.bridge_config,
@@ -85,7 +83,7 @@ pub async fn get_full_datastore(_uid: APIUserGuard, api_state: SharedState) -> i
 }
 
 #[get("/{uid}/config")]
-pub async fn get_configuration(_uid: APIUserGuard, api_state: SharedState) -> impl Responder {
+pub async fn get_configuration(_uid: V1ApiUserGuard, api_state: SharedState) -> impl Responder {
     let controller = &api_state.get_controller_read();
     web::Json(HueV1ConfigurationResponse::from(&controller.bridge_config))
 }
@@ -116,7 +114,7 @@ pub struct NewConfiguration {
 
 #[put("/{uid}/config")]
 pub async fn modify_configuration(
-    _uid: APIUserGuard,
+    _uid: V1ApiUserGuard,
     api_state: SharedState,
     params: web::Json<NewConfiguration>,
 ) -> impl Responder {

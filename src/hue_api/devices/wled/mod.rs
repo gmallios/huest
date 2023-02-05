@@ -1,7 +1,6 @@
-use serde::{Deserialize, Serialize};
 use crate::hue_api::devices::{LightDevice, XYColorData};
-use crate::hue_api::types::internal::{DeviceProtosData};
-
+use crate::hue_api::types::internal::{DeviceProtosData, InternalDevice};
+use serde::{Deserialize, Serialize};
 
 pub struct WLEDDevice {
     pub id: String,
@@ -15,16 +14,13 @@ impl LightDevice for WLEDDevice {
     where
         Self: Sized,
     {
-        // Create a new WLEDDevice from an InternalDevice
         match device.proto_data {
-            DeviceProtosData::WLEDProtoData(ref data) => {
-                WLEDDevice {
-                    id: device.id.clone(),
-                    name: device.name.clone(),
-                    ip: data.ip.clone(),
-                    port: 80,
-                }
-            }
+            DeviceProtosData::WLEDProtoData(ref data) => WLEDDevice {
+                id: device.id.clone(),
+                name: device.name.clone(),
+                ip: data.ip.clone(),
+                port: 80,
+            },
             _ => {
                 panic!("Invalid protocol data for WLEDDevice");
             }
@@ -35,7 +31,9 @@ impl LightDevice for WLEDDevice {
         unimplemented!()
     }
 
-    fn get_v1_state_simple(&self) -> crate::hue_api::types::v1::light::HueV1LightSimpleItemResponse {
+    fn get_v1_state_simple(
+        &self,
+    ) -> crate::hue_api::types::v1::light::HueV1LightSimpleItemResponse {
         unimplemented!()
     }
 
@@ -75,7 +73,6 @@ impl LightDevice for WLEDDevice {
         unimplemented!()
     }
 }
-
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct WLEDProtoData {

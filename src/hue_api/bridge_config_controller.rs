@@ -10,7 +10,7 @@ use chrono::Utc;
 use uuid::Uuid;
 
 use super::{
-    devices::{LightDevice, wled::WLEDDevice},
+    devices::{wled::WLEDDevice, LightDevice},
     types::{
         internal::{DeviceProtos, InternalDeviceMap, InternalGroupMap},
         Config::BridgeConfig,

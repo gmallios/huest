@@ -4,9 +4,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::hue_api::types::Config::BridgeConfig;
 
-use super::{responses::{
-    BackupResponse,
-}, Portalstate, Swupdate, Swupdate2, InternetServices, Whitelist};
+use super::{
+    responses::BackupResponse, InternetServices, Portalstate, Swupdate, Swupdate2, Whitelist,
+};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct HueV1ConfigurationResponse {

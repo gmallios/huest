@@ -1,8 +1,7 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use strum_macros::Display;
 
 use crate::hue_api::devices::wled::WLEDProtoData;
-
 
 pub type InternalDeviceMap = std::collections::BTreeMap<u8, InternalDevice>;
 
@@ -17,13 +16,11 @@ pub struct InternalDevice {
     pub proto_data: DeviceProtosData,
 }
 
-
 #[derive(Serialize, Deserialize, Debug)]
 pub enum DeviceTypes {
     Light,
     Unknown,
 }
-
 
 #[derive(Serialize, Deserialize, Display, Debug)]
 pub enum ModelIDs {

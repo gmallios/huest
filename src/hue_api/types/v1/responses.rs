@@ -1,18 +1,8 @@
-
-
-use crate::{
-    hue_api::types::{
-        Config::{BridgeConfig},
-    },
-};
-
-
+use crate::hue_api::types::Config::BridgeConfig;
 
 use serde::{Deserialize, Serialize};
 
 use super::light::HueV1LightMapResponse;
-
-
 
 pub trait HueV1Response<T> {
     // Returns JSON stringified data
@@ -36,8 +26,6 @@ pub trait HueV1Response<T> {
         obj.clone()
     }
 }
-
-
 
 #[derive(Serialize, Clone)]
 pub struct HueV1SmallConfigResponse {
@@ -70,7 +58,6 @@ impl From<&BridgeConfig> for HueV1SmallConfigResponse {
     }
 }
 
-
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct BackupResponse {
     pub errorcode: i64,
@@ -85,4 +72,3 @@ impl Default for BackupResponse {
         }
     }
 }
-

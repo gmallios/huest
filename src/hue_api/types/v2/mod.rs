@@ -1,10 +1,8 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-
-
-pub mod responses;
 pub mod grouped_light;
+pub mod responses;
 
 #[derive(Serialize, Debug)]
 pub struct EmptyObj {}

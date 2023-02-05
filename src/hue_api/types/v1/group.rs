@@ -1,7 +1,8 @@
 use std::collections::BTreeMap;
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
+use crate::hue_api::types::internal::Action;
 
 pub type HueV1GroupMapResponse = BTreeMap<u8, HueV1GroupResponseWOState>;
 
@@ -24,21 +25,7 @@ pub struct HueV1GroupResponseWOState {
     pub rtype: String, // "Room"
     pub modelid: String,
     pub uniqueid: String,
-    pub class: String
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct Action {
-    pub on: bool,
-    pub bri: u8,
-    pub hue: u16,
-    pub sat: u8,
-    pub effect: Option<String>,
-    pub xy: Option<[f32; 2]>,
-    pub ct: Option<u16>,
-    pub alert: Option<String>,
-    pub colormode: Option<String>,
-    pub mode: Option<String>,
+    pub class: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

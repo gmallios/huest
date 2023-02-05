@@ -1,14 +1,24 @@
 use serde::Serialize;
 
-use crate::hue_api::types::{Config::BridgeConfig};
+use crate::hue_api::types::Config::BridgeConfig;
 
-use super::{configuration::HueV1ConfigurationResponse, responses::HueV1Response, light::HueV1LightMapResponse, group::HueV1GroupMapResponse};
+use super::{
+    configuration::HueV1ConfigurationResponse, group::HueV1GroupMapResponse,
+    light::HueV1LightMapResponse,
+};
 
 #[derive(Serialize)]
 pub struct HueV1DatastoreResponse {
+    pub config: HueV1ConfigurationResponse,
     pub lights: HueV1LightMapResponse,
     pub groups: HueV1GroupMapResponse,
-    pub config: HueV1ConfigurationResponse,
+    /*
+    scenes,
+    rules,
+    resourcelinks,
+    schedules,
+    sensors,
+    */
 }
 
 impl HueV1DatastoreResponse {
@@ -20,7 +30,7 @@ impl HueV1DatastoreResponse {
         HueV1DatastoreResponse {
             lights,
             groups,
-            config: HueV1ConfigurationResponse::from(bridge_config)
+            config: HueV1ConfigurationResponse::from(bridge_config),
         }
     }
 }

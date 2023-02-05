@@ -1,9 +1,11 @@
-
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashMap};
 
-use crate::hue_api::{types::internal::{InternalDeviceMap, DeviceTypes, InternalDevice}, devices::LightDevice};
+use crate::hue_api::{
+    devices::LightDevice,
+    types::internal::{DeviceTypes, InternalDevice, InternalDeviceMap},
+};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct HueV1LightMapResponse(BTreeMap<u8, HueV1LightSimpleItemResponse>);

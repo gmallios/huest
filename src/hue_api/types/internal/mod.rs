@@ -1,5 +1,7 @@
 mod device;
 mod group;
 
-pub use device::{DeviceTypes, InternalDevice, InternalDeviceMap, ModelIDs, DeviceProtos, DeviceProtosData};
-pub use group::{InternalGroup, InternalGroupMap};
+pub use device::{
+    DeviceProtos, DeviceProtosData, DeviceTypes, InternalDevice, InternalDeviceMap, ModelIDs,
+};
+pub use group::{InternalGroup, InternalGroupMap, Action};

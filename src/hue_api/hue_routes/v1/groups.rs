@@ -1,10 +1,10 @@
 use actix_web::{delete, get, post, put, web, Responder};
 use serde::Deserialize;
 
-use crate::hue_api::hue_routes::{APIUserGuard, SharedState};
+use crate::hue_api::hue_routes::{V1ApiUserGuard, SharedState};
 
 #[get("/{uid}/groups")]
-pub async fn get_all_groups(_uid: APIUserGuard, _api_state: SharedState) -> impl Responder {
+pub async fn get_all_groups(_uid: V1ApiUserGuard, _api_state: SharedState) -> impl Responder {
     // Sample Response:
     // {
     //     "1": {
@@ -67,7 +67,7 @@ pub struct NewGroup {
 
 #[post("/{uid}/groups")]
 pub async fn create_new_group(
-    _uid: APIUserGuard,
+    _uid: V1ApiUserGuard,
     _api_state: SharedState,
     _body: web::Json<NewGroup>,
 ) -> impl Responder {
@@ -77,7 +77,7 @@ pub async fn create_new_group(
 
 #[get("/{uid}/groups/{group_id}")]
 pub async fn get_group(
-    _uid: APIUserGuard,
+    _uid: V1ApiUserGuard,
     _group_id: web::Path<String>,
     _api_state: SharedState,
 ) -> impl Responder {
@@ -109,7 +109,7 @@ pub struct GroupAttributes {
 
 #[put("{uid}/groups/{group_id}")]
 pub async fn set_group_attr(
-    _uid: APIUserGuard,
+    _uid: V1ApiUserGuard,
     _group_id: web::Path<String>,
     _api_state: SharedState,
     _attr: web::Json<GroupAttributes>,
@@ -143,7 +143,7 @@ pub struct NewGroupState {
 
 #[put("{uid}/groups/{group_id}/action")]
 pub async fn set_group_state(
-    _uid: APIUserGuard,
+    _uid: V1ApiUserGuard,
     _api_state: SharedState,
     _group_id: web::Path<String>,
     _new_state: web::Json<NewGroupState>,
@@ -159,7 +159,7 @@ pub async fn set_group_state(
 
 #[delete("/{uid}/groups/{group_id}")]
 pub async fn delete_group(
-    _uid: APIUserGuard,
+    _uid: V1ApiUserGuard,
     _group_id: web::Path<String>,
     _api_state: SharedState,
 ) -> impl Responder {

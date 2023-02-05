@@ -8,13 +8,13 @@ mod v2;
 
 pub type SharedState = web::Data<crate::HueAppState>;
 #[derive(serde::Deserialize, Debug)]
-pub struct APIUserGuard {
+pub struct V1ApiUserGuard {
     pub uid: String,
 }
 
-impl FromRequest for APIUserGuard {
+impl FromRequest for V1ApiUserGuard {
     type Error = actix_web::Error;
-    type Future = futures::future::Ready<Result<APIUserGuard, Self::Error>>;
+    type Future = futures::future::Ready<Result<V1ApiUserGuard, Self::Error>>;
 
     fn from_request(
         req: &actix_web::HttpRequest,
@@ -27,7 +27,7 @@ impl FromRequest for APIUserGuard {
             state.get_controller_read().user_exists(uid)
         );
         match state.get_controller_read().user_exists(uid) {
-            true => futures::future::ok(APIUserGuard {
+            true => futures::future::ok(V1ApiUserGuard {
                 uid: uid.to_string(),
             }),
             false => futures::future::err(actix_web::error::ErrorUnauthorized("Invalid user")), /* TODO: Return proper NonAuth error */
@@ -36,14 +36,14 @@ impl FromRequest for APIUserGuard {
 }
 
 #[derive(Debug)]
-pub struct HueApplicationKeyGuard {
+pub struct V2ApiUserGuard {
     pub key: String,
     pub name: String,
 }
 
-impl FromRequest for HueApplicationKeyGuard {
+impl FromRequest for V2ApiUserGuard {
     type Error = actix_web::Error;
-    type Future = futures::future::Ready<Result<HueApplicationKeyGuard, Self::Error>>;
+    type Future = futures::future::Ready<Result<V2ApiUserGuard, Self::Error>>;
 
     fn from_request(
         req: &actix_web::HttpRequest,
@@ -58,7 +58,7 @@ impl FromRequest for HueApplicationKeyGuard {
             .unwrap();
         debug!("HueApplicationKeyGuard key: {}", key);
         match state.get_controller_read().user_exists(key) {
-            true => futures::future::ok(HueApplicationKeyGuard {
+            true => futures::future::ok(V2ApiUserGuard {
                 key: key.to_string(),
                 name: state
                     .get_controller_read()
@@ -66,9 +66,9 @@ impl FromRequest for HueApplicationKeyGuard {
                     .get_or_insert("Unknown".to_string())
                     .to_string(),
             }),
-            false => futures::future::err(actix_web::error::ErrorForbidden(
-                "Invalid application key",
-            )),
+            false => {
+                futures::future::err(actix_web::error::ErrorForbidden("Invalid application key"))
+            }
         }
     }
 }
@@ -97,11 +97,8 @@ pub fn hue_v2_routes() -> actix_web::Scope {
 }
 
 pub fn hue_v2_clipstream() -> actix_web::Scope {
-    web::scope("/eventstream/clip/v2")
-        .service(test_clip)
-    
+    web::scope("/eventstream/clip/v2").service(test_clip)
 }
-
 
 #[get("")]
 async fn test_clip() -> &'static str {

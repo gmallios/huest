@@ -20,7 +20,7 @@ use hue_api::{
     hue_routes::hue_v1_routes, hue_ssdp::start_ssdp_broadcast,
 };
 
-use crate::hue_api::hue_routes::{hue_v2_routes, hue_v2_clipstream};
+use crate::hue_api::hue_routes::{hue_v2_clipstream, hue_v2_routes};
 
 #[macro_use]
 extern crate serde_json;

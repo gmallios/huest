@@ -2,7 +2,9 @@ use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 
-use crate::hue_api::types::v1::group::{HueV1GroupResponse, HueV1GroupResponseWOState, HueV1GroupMapResponse};
+use crate::hue_api::types::v1::group::{
+    HueV1GroupMapResponse, HueV1GroupResponse, HueV1GroupResponseWOState,
+};
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct InternalGroupMap(pub BTreeMap<u8, InternalGroup>);
@@ -30,7 +32,7 @@ pub struct InternalGroup {
     action: Action,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct Action {
     pub on: bool,
     pub bri: u8,
@@ -53,7 +55,15 @@ impl InternalGroup {
         unimplemented!()
     }
     fn get_v1_wo_state(&self) -> HueV1GroupResponseWOState {
-        unimplemented!()
+        HueV1GroupResponseWOState {
+            action: self.action.clone(),
+            lights: self.lights.clone(),
+            name: self.name.clone(),
+            rtype: "Room".to_string(),
+            modelid: "Group".to_string(),
+            uniqueid: self.id.clone(),
+            class: "Room".to_string(),
+        }
     }
     fn get_v2_room(&self) {
         unimplemented!()
