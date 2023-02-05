@@ -1,13 +1,18 @@
-use crate::hue_api::hue_routes::{SharedController, UIDParam};
-use crate::hue_api::hue_types::Responses::*;
-use crate::hue_api::{
-    hue_config_controller::HueConfigControllerState, hue_types::Responses::HueConfigurationResponse,
-};
+use std::collections::HashMap;
 
-use actix_web::{error, get, post, web, HttpResponse, Responder, put};
+use crate::hue_api::{
+    hue_routes::{APIUserGuard, SharedState},
+    types::v1::{
+        configuration::HueV1ConfigurationResponse,
+        datastore::HueV1DatastoreResponse,
+        responses::{HueV1SmallConfigResponse},
+        Swupdate, light::HueV1LightMapResponse,
+    },
+};
+use actix_web::{error, get, post, put, web, HttpResponse, Responder};
 use futures::StreamExt;
-use log::{debug};
-use serde::{Deserialize};
+use log::debug;
+use serde::Deserialize;
 
 // #[macro_export]
 // macro_rules! hue_success_json {
@@ -30,12 +35,9 @@ fn json_resp(body: String) -> HttpResponse {
 }
 
 #[post("")]
-pub async fn create_user(
-    mut payload: web::Payload,
-    api_state: SharedController,
-) -> impl Responder {
+pub async fn create_user(mut payload: web::Payload, api_state: SharedState) -> impl Responder {
     let resp: String;
-    if api_state.get_controller_write().is_link_button_pressed() == false {
+    if !api_state.get_controller_write().is_link_button_pressed() {
         // 101 Error - Link button not pressed
         // TODO: Define error codes with messages
         // TODO: Implement macro for error response
@@ -56,7 +58,6 @@ pub async fn create_user(
             body.extend_from_slice(&chunk);
         }
 
-
         let obj = serde_json::from_slice::<CreateUserData>(&body).unwrap();
         let (uid, clientkey) = api_state
             .get_controller_write()
@@ -73,52 +74,29 @@ pub async fn create_user(
     Ok(json_resp(resp))
 }
 
-
 #[get("/{uid}")]
-pub async fn get_full_datastore(
-    uid: UIDParam,
-    api_state: SharedController,
-) -> impl Responder {
+pub async fn get_full_datastore(_uid: APIUserGuard, api_state: SharedState) -> impl Responder {
     let controller = &api_state.get_controller_read();
-    //TODO: Reject if user auth fails
-    println!("user_exists: {}", &controller.user_exists(&uid));
-
-    let resp = crate::hue_api::hue_types::Responses::DatastoreResponse::from_bridge_config(
-        controller.bridge_config.clone(),
-        Some(controller.device_map.clone()),
-        Some(controller.group_map.clone()),
-    );
-    json_resp(resp)
+    web::Json(HueV1DatastoreResponse::build(
+        &controller.bridge_config,
+        HueV1LightMapResponse::build(&controller.light_devices),
+        controller.group_map.get_v1(),
+    ))
 }
 
 #[get("/{uid}/config")]
-pub async fn get_configuration(
-    uid: UIDParam,
-    api_state: SharedController,
-) -> impl Responder {
+pub async fn get_configuration(_uid: APIUserGuard, api_state: SharedState) -> impl Responder {
     let controller = &api_state.get_controller_read();
-    //TODO: Reject if user auth fails
-    println!("user_exists: {}", &controller.user_exists(&uid));
-
-    let resp = HueConfigurationResponse::from_bridge_config(controller.bridge_config.clone(), None, None);
-    json_resp(resp)
+    web::Json(HueV1ConfigurationResponse::from(&controller.bridge_config))
 }
 
 #[get("/config")]
-pub async fn get_config(api_state: SharedController) -> impl Responder {
-    /* Don't know if this is actually needed - Not in documentation */
+pub async fn get_config(api_state: SharedState) -> impl Responder {
     let bridge_config = &api_state.get_controller_read().bridge_config;
-    let bridgeid = &bridge_config.bridgeid;
-    let mac = &bridge_config.mac;
-    let response = HueConfigResponse {
-        bridgeid: bridgeid.to_string(),
-        mac: mac.to_string(),
-        ..HueConfigResponse::default()
-    };
-    json_resp(json!(response).to_string())
+    web::Json(HueV1SmallConfigResponse::from(bridge_config))
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct NewConfiguration {
     proxyport: Option<String>,
     name: Option<String>,
@@ -136,17 +114,20 @@ pub struct NewConfiguration {
     zigbeechannel: Option<u8>,
 }
 
-
 #[put("/{uid}/config")]
 pub async fn modify_configuration(
-    uid: UIDParam,
-    api_state: SharedController,
+    _uid: APIUserGuard,
+    api_state: SharedState,
     params: web::Json<NewConfiguration>,
 ) -> impl Responder {
     // Sample response: [{"success":{"/config/name":"My bridge"}}]
-    let controller = &api_state.get_controller_write();
-    for obj in params.iter() {
-        debug!("NewConfiguration: {:?}", obj);
-    }
+    let _controller = &mut api_state.get_controller_write();
+    let newconfg = params.into_inner();
+
+    debug!("New configuration: {:?}", newconfg);
+
+    let _changed_params: HashMap<String, String> = HashMap::new();
+
+    // controller.bridge_config.name = newconfg.name.unwrap_or(controller.bridge_config.name);
     "TODO"
 }

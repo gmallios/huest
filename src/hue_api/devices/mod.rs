@@ -1,8 +1,11 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
-use self::WLED::{WLEDDevice, WLEDProtocolCfg};
 
-pub mod WLED;
+use self::wled::WLEDProtoData;
+
+use super::types::{internal::InternalDevice, v1::light::HueV1LightSimpleItemResponse};
+
+pub mod wled;
 
 pub struct Device {
     pub ip: String,
@@ -11,35 +14,35 @@ pub struct Device {
     pub name: String,
 }
 
-
-// PoC for "converting" device_map to responding device structs
-// Could not get dynamic dispatch to work, so this is a suboptimal way to do it 
-pub struct LightDeviceList {
-    pub wled: Vec<WLEDDevice>,
-}
-
-pub trait LightDevice {
-    fn new(&self) -> Box<dyn LightDevice>;
+pub trait LightDevice: Send + Sync {
+    fn new(device: &InternalDevice) -> Self
+    where
+        Self: Sized;
+    fn get_v1_state_full(&self);
+    fn get_v1_state_simple(&self) -> HueV1LightSimpleItemResponse;
+    fn get_v2_state(&self);
     fn get_ip(&self) -> String;
     fn get_port(&self) -> u16;
     fn get_mac(&self) -> String;
     fn get_name(&self) -> String;
+    fn get_v1_id(&self) -> u8;
+    fn get_v2_id(&self) -> String;
     fn send_color(&self, color: XYColorData);
     fn set_brightness(&self, brightness: u8);
 }
 
-struct RGBColorData {
+
+pub struct RGBColorData {
     pub red: u8,
     pub green: u8,
     pub blue: u8,
 }
 
-struct XYColorData {
+
+pub struct XYColorData {
     pub X: f32,
     pub Y: f32,
 }
-
-
 
 // Used for specifying protocol-specific config params
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
@@ -47,5 +50,5 @@ struct XYColorData {
 pub enum ProtocolCfg {
     #[default]
     None,
-    WLEDProtocolCfg(WLEDProtocolCfg)
+    WLEDProtocolCfg(WLEDProtoData),
 }

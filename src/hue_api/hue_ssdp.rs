@@ -7,9 +7,7 @@ use std::{
 
 use log::warn;
 
-
-
-static SSDP_INTERVAL: u64  = 1500;
+static SSDP_INTERVAL: u64 = 1500;
 
 // https://github.com/rustasync/team/issues/81
 // I don't know if this is working yet
@@ -29,17 +27,17 @@ pub fn start_ssdp_broadcast() {
         )
         .unwrap();
 
-
     let msg = ssdp_msg.as_bytes();
     let mut buf = [0; 1024];
     for _ in 0..10 {
-        let (_number_of_bytes, src_addr) =
-                ssdp_socket.recv_from(&mut buf).expect("Didn't receive data");
+        let (_number_of_bytes, src_addr) = ssdp_socket
+            .recv_from(&mut buf)
+            .expect("Didn't receive data");
         // ssdp_socket
         //     .send_to(&msg, "239.255.255.250:1900")
         //     .expect("Failed to send SSDP message");
         ssdp_socket
-            .send_to(&msg, src_addr)
+            .send_to(msg, src_addr)
             .expect("Failed to send SSDP message");
         thread::sleep(Duration::from_millis(SSDP_INTERVAL));
     }

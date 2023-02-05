@@ -1,10 +1,10 @@
 use actix_web::{delete, get, post, put, web, Responder};
 use serde::Deserialize;
 
-use crate::hue_api::hue_routes::{SharedController, UIDParam};
+use crate::hue_api::hue_routes::{APIUserGuard, SharedState};
 
 #[get("/{uid}/groups")]
-pub async fn get_all_groups(uid: UIDParam, api_state: SharedController) -> impl Responder {
+pub async fn get_all_groups(_uid: APIUserGuard, _api_state: SharedState) -> impl Responder {
     // Sample Response:
     // {
     //     "1": {
@@ -67,9 +67,9 @@ pub struct NewGroup {
 
 #[post("/{uid}/groups")]
 pub async fn create_new_group(
-    uid: UIDParam,
-    api_state: SharedController,
-    body: web::Json<NewGroup>,
+    _uid: APIUserGuard,
+    _api_state: SharedState,
+    _body: web::Json<NewGroup>,
 ) -> impl Responder {
     // Sample Response: [{"success":{"id":"1"}}]
     "TODO"
@@ -77,9 +77,9 @@ pub async fn create_new_group(
 
 #[get("/{uid}/groups/{group_id}")]
 pub async fn get_group(
-    uid: UIDParam,
-    group_id: web::Path<String>,
-    api_state: SharedController,
+    _uid: APIUserGuard,
+    _group_id: web::Path<String>,
+    _api_state: SharedState,
 ) -> impl Responder {
     // Sample Response
     // {
@@ -109,10 +109,10 @@ pub struct GroupAttributes {
 
 #[put("{uid}/groups/{group_id}")]
 pub async fn set_group_attr(
-    uid: UIDParam,
-    group_id: web::Path<String>,
-    api_state: SharedController,
-    attr: web::Json<GroupAttributes>,
+    _uid: APIUserGuard,
+    _group_id: web::Path<String>,
+    _api_state: SharedState,
+    _attr: web::Json<GroupAttributes>,
 ) -> impl Responder {
     // Sample Response:
     // [
@@ -138,17 +138,17 @@ pub struct NewGroupState {
     hue_inc: Option<i32>,     // -65534 to 65534
     ct_inc: Option<i32>,      // -65534 to 65534
     xy_inc: Option<Vec<f64>>, // Max [0.5, 0.5]
-    scene: Option<String>
+    scene: Option<String>,
 }
 
 #[put("{uid}/groups/{group_id}/action")]
 pub async fn set_group_state(
-    uid: UIDParam,
-    api_state: SharedController,
-    group_id: web::Path<String>,
-    new_state: web::Json<NewGroupState>,
+    _uid: APIUserGuard,
+    _api_state: SharedState,
+    _group_id: web::Path<String>,
+    _new_state: web::Json<NewGroupState>,
 ) -> impl Responder {
-    // Sample Response: 
+    // Sample Response:
     // [
     //     {"success":{ "address": "/groups/1/action/on", "value": true}},
     //     {"success":{ "address": "/groups/1/action/effect", "value":"colorloop"}},
@@ -157,9 +157,12 @@ pub async fn set_group_state(
     "TODO"
 }
 
-
 #[delete("/{uid}/groups/{group_id}")]
-pub async fn delete_group(uid: UIDParam, group_id: web::Path<String>, api_state: SharedController) -> impl Responder {
+pub async fn delete_group(
+    _uid: APIUserGuard,
+    _group_id: web::Path<String>,
+    _api_state: SharedState,
+) -> impl Responder {
     // Sample Response:
     // [{
     //     "success": "/groups/1 deleted."

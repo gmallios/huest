@@ -3,31 +3,30 @@ use actix_web::{
     middleware::{self, Logger},
     web, App, HttpResponse, HttpServer,
 };
-use bridge::{get_mac_addr};
+use bridge::get_mac_addr;
 use log::{error, info, warn};
-use openssl::ssl::{SslAcceptor, SslMethod, SslFiletype};
+use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod};
 //use rustls::{ServerConfig, Certificate, PrivateKey};
 //use rustls_pemfile::{certs, pkcs8_private_keys};
 use std::{
-    fs::{self, File},
+    fs::{self},
     process::Command,
-    sync::{Arc},
-    thread, io::BufReader,
+    sync::{Arc, RwLock},
+    thread,
 };
 
 use hue_api::{
-    hue_config_controller::{HueConfigController, HueConfigControllerState},
-    hue_mdns::start_hue_mdns,
-    hue_ssdp::start_ssdp_broadcast,
-    hue_routes::get_hue_api_routes
+    bridge_config_controller::HueConfigController, hue_mdns::start_hue_mdns,
+    hue_routes::hue_v1_routes, hue_ssdp::start_ssdp_broadcast,
 };
 
+use crate::hue_api::hue_routes::{hue_v2_routes, hue_v2_clipstream};
 
 #[macro_use]
 extern crate serde_json;
 
 // This openssl path is used for creating the TLS certificate.
-// TODO: Find a better way to do this in order to support other Platforms which do not have openssl. 
+// TODO: Find a better way to do this in order to support other Platforms which do not have openssl.
 //       rcgen crate is a good candidate.
 // Generaly we prefer pure rust implementations of various functions in order to avoid the need for external dependencies.
 #[cfg(target_os = "linux")]
@@ -65,11 +64,6 @@ async fn main() -> std::io::Result<()> {
     //         .get(&0)
     // );
 
-    if let Some(a) = hue_api::hue_util::get_latest_swversion().await {
-        log::debug!("{}", a)
-    } 
-    
-
     // Generate SSL Certificates
     match gen_ssl_cert() {
         Ok(_) => {
@@ -84,9 +78,18 @@ async fn main() -> std::io::Result<()> {
     thread::spawn(start_ssdp_broadcast);
     thread::spawn(start_hue_mdns);
 
-    let api_state = web::Data::new(HueConfigControllerState {
+    let api_state = web::Data::new(HueAppState {
         hue_config_controller: Arc::new(std::sync::RwLock::new(HueConfigController::new())),
     });
+
+    if let Some(ver) = hue_api::hue_util::get_latest_swversion().await {
+        api_state
+            .hue_config_controller
+            .write()
+            .unwrap()
+            .update_swversion(&ver);
+        log::debug!("got latest swversion: {}", ver);
+    }
 
     // Debug thread
     // let state = api_state.clone();
@@ -100,7 +103,6 @@ async fn main() -> std::io::Result<()> {
     //     }
     // });
 
-
     let mut openssl_builder = SslAcceptor::mozilla_intermediate(SslMethod::tls()).unwrap();
     openssl_builder.set_private_key_file("./ssl/private.pem", SslFiletype::PEM)?;
     openssl_builder
@@ -112,7 +114,9 @@ async fn main() -> std::io::Result<()> {
             .wrap(middleware::NormalizePath::trim())
             .app_data(api_state.clone())
             .service(description_xml)
-            .service(get_hue_api_routes())
+            .service(hue_v1_routes())
+            .service(hue_v2_routes())
+            .service(hue_v2_clipstream())
             .wrap(Logger::default())
     })
     //.bind_rustls("0.0.0.0:443", load_rustls_config())?
@@ -121,35 +125,6 @@ async fn main() -> std::io::Result<()> {
     .run()
     .await
 }
-
-// fn load_rustls_config() -> rustls::ServerConfig {
-//     let config = ServerConfig::builder()
-//     .with_safe_defaults()
-//     .with_no_client_auth();
-
-//     let cert_file = &mut BufReader::new(File::open("./ssl/cert.pem").unwrap());
-//     let key_file = &mut BufReader::new(File::open("./ssl/private.pem").unwrap());
-
-//     // convert files to key/cert objects
-//     let cert_chain = certs(cert_file)
-//         .unwrap()
-//         .into_iter()
-//         .map(Certificate)
-//         .collect();
-//     let mut keys: Vec<PrivateKey> = pkcs8_private_keys(key_file)
-//         .unwrap()
-//         .into_iter()
-//         .map(PrivateKey)
-//         .collect();
-
-//     // exit if no keys could be parsed
-//     if keys.is_empty() {
-//         error!("Could not locate PKCS 8 private keys.");
-//         std::process::exit(1);
-//     }
-
-//     config.with_single_cert(cert_chain, keys.remove(0)).unwrap()
-// }
 
 #[get("/")]
 async fn hello() -> &'static str {
@@ -166,19 +141,39 @@ async fn description_xml() -> impl actix_web::Responder {
 
 fn gen_ssl_cert() -> Result<std::process::Output, std::io::Error> {
     let mac_addr = get_mac_addr().replace(':', "");
-    let serial = format!(
-        "{}fffe{}",
-        mac_addr[..6].to_string(),
-        mac_addr[6..].to_string()
-    );
+    let serial = format!("{}fffe{}", &mac_addr[..6], &mac_addr[6..]);
     let decimal_serial = format!("{}", u64::from_str_radix(&serial, 16).unwrap());
     let cmd = format!("{} req -new -days 3650 -config ssl/openssl.conf  -nodes -x509 -newkey ec -pkeyopt ec_paramgen_curve:P-256 -pkeyopt ec_param_enc:named_curve   -subj \"/C=NL/O=Philips Hue/CN={}\" -keyout ssl/private.pem -out ssl/cert.pem -set_serial {}",OPENSSL_PATH,serial,decimal_serial);
 
     let output = if cfg!(target_os = "windows") {
-        Command::new("cmd").args(&["/C", &cmd]).output()
+        warn!("Wonky ssl cert generation on windows, run: {}", &cmd);
+        Command::new("cmd").args(["/C", &cmd]).output()
     } else {
         Command::new("sh").arg("-c").arg(cmd).output()
     };
 
     output
+}
+
+#[derive(Clone)]
+pub struct HueAppState {
+    pub hue_config_controller: Arc<RwLock<HueConfigController>>,
+    // Device flow should be parse -> push to list -> e.g call LightDevice.setColor
+    //                                             -> e.g call LightDevice.status -> Returns JSON in order to build HueDeviceMap
+    // TODO: Rewrite Responses.rs in order to follow this flow
+    /* Lifetime of devices_list:
+        Init -> Empty -> Parse Config -> Fill
+        On Push New Device -> Push to Vec -> Update Light Config -> Save Light Config
+    */
+    // pub device_list: Arc<Vec<Box<dyn hue_api::devices::LightDevice + Send + Sync>>>,
+}
+
+impl HueAppState {
+    pub fn get_controller_read(&self) -> std::sync::RwLockReadGuard<HueConfigController> {
+        self.hue_config_controller.read().unwrap()
+    }
+
+    pub fn get_controller_write(&self) -> std::sync::RwLockWriteGuard<HueConfigController> {
+        self.hue_config_controller.write().unwrap()
+    }
 }

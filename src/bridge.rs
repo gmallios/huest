@@ -1,7 +1,7 @@
-use default_net::{gateway, Interface};
+use default_net::Interface;
 // Use clap to parse command line arguments
 //use default_net::{self, gateway, Interface};
-use log::{debug, error, warn};
+use log::{error, warn};
 use once_cell::sync::Lazy;
 use std::sync::{Arc, RwLock};
 
@@ -90,5 +90,13 @@ pub fn get_gateway_ip() -> String {
 
 /* I don't know about that... */
 pub fn get_netmask() -> String {
-    return BRIDGE_PARAMS.read().unwrap().iface.ipv4.first().unwrap().netmask.to_string();
+    return BRIDGE_PARAMS
+        .read()
+        .unwrap()
+        .iface
+        .ipv4
+        .first()
+        .unwrap()
+        .netmask
+        .to_string();
 }

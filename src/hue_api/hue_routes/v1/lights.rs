@@ -1,19 +1,16 @@
-use actix_web::{get, post, put, web, Responder, delete};
+use actix_web::{delete, get, post, put, web, Responder};
 use serde::Deserialize;
 
-use crate::hue_api::hue_routes::{SharedController, UIDParam};
+use crate::hue_api::hue_routes::{APIUserGuard, SharedState};
 
 #[post("/{uid}/lights")]
-pub async fn search_for_new_lights(
-    uid: UIDParam,
-    api_state: SharedController,
-) -> impl Responder {
+pub async fn search_for_new_lights(_uid: APIUserGuard, _api_state: SharedState) -> impl Responder {
     // Sample Response: [ { "success": { "/lights": "Searching for new devices" }}]
     "TODO"
 }
 
 #[get("/{uid}/lights")]
-pub async fn get_all_lights(uid: UIDParam, api_state: SharedController) -> impl Responder {
+pub async fn get_all_lights(_uid: APIUserGuard, _api_state: SharedState) -> impl Responder {
     // Sample Response:
     // {
     //     "1": {
@@ -85,7 +82,7 @@ pub async fn get_all_lights(uid: UIDParam, api_state: SharedController) -> impl 
 }
 
 #[get("/{uid}/lights/new")]
-pub async fn get_new_lights(uid: UIDParam, api_state: SharedController) -> impl Responder {
+pub async fn get_new_lights(_uid: APIUserGuard, _api_state: SharedState) -> impl Responder {
     // Sample Response:
     // {
     //     "7": {"name": "Hue Lamp 7"},
@@ -97,9 +94,9 @@ pub async fn get_new_lights(uid: UIDParam, api_state: SharedController) -> impl 
 
 #[get("/{uid}/lights/{light_id}")]
 pub async fn get_light(
-    uid: UIDParam,
-    light_id: web::Path<String>,
-    api_state: SharedController,
+    _uid: APIUserGuard,
+    _light_id: web::Path<String>,
+    _api_state: SharedState,
 ) -> impl Responder {
     // Sample Response
     // {
@@ -130,10 +127,10 @@ pub struct RenameReq {
 
 #[put("/{uid}/lights/{light_id}")]
 pub async fn rename_light(
-    uid: UIDParam,
-    light_id: web::Path<String>,
-    body: web::Json<RenameReq>,
-    api_state: SharedController,
+    _uid: APIUserGuard,
+    _light_id: web::Path<String>,
+    _body: web::Json<RenameReq>,
+    _api_state: SharedState,
 ) -> impl Responder {
     // Sample Response: [{"success":{"/lights/1/name":"Bedroom Light"}}]
     "TODO"
@@ -159,10 +156,10 @@ pub struct NewLightState {
 
 #[put("/{uid}/lights/{light_id}/state")]
 pub async fn set_light_state(
-    uid: UIDParam,
-    light_id: web::Path<String>,
-    body: web::Json<NewLightState>,
-    api_state: SharedController,
+    _uid: APIUserGuard,
+    _light_id: web::Path<String>,
+    _body: web::Json<NewLightState>,
+    _api_state: SharedState,
 ) -> impl Responder {
     // Sample Response:
     //     [
@@ -173,12 +170,11 @@ pub async fn set_light_state(
     "TODO"
 }
 
-
 #[delete("/{uid}/lights/{light_id}")]
 pub async fn delete_light(
-    uid: UIDParam,
-    light_id: web::Path<String>,
-    api_state: SharedController,
+    _uid: APIUserGuard,
+    _light_id: web::Path<String>,
+    _api_state: SharedState,
 ) -> impl Responder {
     "TODO"
 }

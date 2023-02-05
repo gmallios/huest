@@ -1,9 +1,8 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, BTreeMap};
 
 use serde::{Deserialize, Serialize};
 
-use super::Device::HueDeviceMap;
-
+//https://crates.io/crates/serde_with for more convenient types
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct BridgeConfig {
@@ -17,13 +16,13 @@ pub struct BridgeConfig {
     pub bridgeid: String,
     pub timezone: String,
     pub linkbutton: LinkButton,
-    pub hue_users: HashMap<u8, HueUser>,
+    pub hue_users: BTreeMap<u8, HueUser>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct LinkButton {
     pub lastlinkbuttonpushed: i64,
-    pub pressed: bool
+    pub pressed: bool,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -46,13 +45,12 @@ impl Default for BridgeConfig {
             gateway: String::new(),
             netmask: String::new(),
             bridgeid: String::new(),
-            timezone: String::new(),
+            timezone: "Europe/London".to_string(),
             linkbutton: LinkButton {
                 lastlinkbuttonpushed: 0,
-                pressed: false
+                pressed: false,
             },
-            hue_users: HashMap::new(),
+            hue_users: BTreeMap::new(),
         }
     }
 }
-
