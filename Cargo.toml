@@ -13,9 +13,9 @@ phf = { version = "0.11.1", default-features = false, features = ["macros"] }
 serde_yaml = "0.9.16"
 serde_json = "1.0"
 actix-web = { version = "4.1.0", default-features = false, features = ["openssl", "macros", "compress-gzip", "compress-brotli"] }
+actix-rt = "2.7.0"
 awc = { version = "3.0.0", features = ["openssl"] }
 scraper = "0.14.0"
-actix-rt = "2.7.0"
 openssl = { version = "0.10.41", features = ["vendored"] }
 env_logger = "0.10.0"
 log = "0.4.0"

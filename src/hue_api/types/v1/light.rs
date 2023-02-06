@@ -2,30 +2,39 @@ use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashMap};
 
-use crate::hue_api::{
-    devices::LightDevice,
-    types::internal::{DeviceTypes, InternalDevice, InternalDeviceMap},
-};
+use crate::hue_api::{devices::LightDevice, types::internal::InternalDevice};
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct HueV1LightMapResponse(BTreeMap<u8, HueV1LightSimpleItemResponse>);
-
-// impl From<&InternalDeviceMap> for HueV1LightMapResponse {
-//     fn from(devices: &InternalDeviceMap) -> Self {
-//         let mut lights = BTreeMap::new();
-//         for (id, device) in devices.iter() {
-//             if let DeviceTypes::Light = device.device_type {
-//                 lights.insert(*id, HueV1LightSimpleItemResponse::from(device));
-//             }
-//         }
-//         Self(lights)
-//     }
-// }
+pub struct HueV1LightSimpleMapResponse(BTreeMap<u8, HueV1LightSimpleItemResponse>);
+#[derive(Serialize, Deserialize, Debug)]
+pub struct HueV1LightMapResponse(BTreeMap<u8, HueV1LightItemResponse>);
 
 impl HueV1LightMapResponse {
-    pub fn build(devices: &Vec<Box<dyn LightDevice>>) -> HueV1LightMapResponse {
+    pub fn build(devices: &BTreeMap<u8, Box<dyn LightDevice>>) -> HueV1LightMapResponse {
         let mut lights = BTreeMap::new();
-        for device in devices {
+        for (_id, device) in devices {
+            lights.insert(device.get_v1_id(), device.get_v1_state());
+        }
+        Self(lights)
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct HueV1LightItemResponse {
+    pub name: String,
+    pub modelid: String,
+    pub swversion: String,
+    #[serde(rename = "type")]
+    pub ltype: String,
+    pub state: State,
+    pub swupdate: Swupdate,
+    pub capabilities: Capabilities,
+}
+
+impl HueV1LightSimpleMapResponse {
+    pub fn build(devices: &BTreeMap<u8, Box<dyn LightDevice>>) -> HueV1LightSimpleMapResponse {
+        let mut lights = BTreeMap::new();
+        for (_id, device) in devices {
             lights.insert(device.get_v1_id(), device.get_v1_state_simple());
         }
         Self(lights)
@@ -134,32 +143,32 @@ impl From<&InternalDevice> for HueV1LightSimpleItemResponse {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-struct Ct {
+pub struct Ct {
     max: i64,
     min: i64,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-struct Swupdate {
+pub struct Swupdate {
     state: String,
     lastinstall: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-struct Capabilities {
+pub struct Capabilities {
     pub certified: bool,
     pub control: Control,
     pub streaming: Streaming,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-struct Streaming {
+pub struct Streaming {
     renderer: bool,
     proxy: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-struct Control {
+pub struct Control {
     pub colorgamut: Vec<Vec<f64>>,
     pub colorgamuttype: String,
     pub ct: Ct,

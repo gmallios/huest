@@ -4,13 +4,13 @@ use crate::hue_api::types::Config::BridgeConfig;
 
 use super::{
     configuration::HueV1ConfigurationResponse, group::HueV1GroupMapResponse,
-    light::HueV1LightMapResponse,
+    light::HueV1LightSimpleMapResponse,
 };
 
 #[derive(Serialize)]
 pub struct HueV1DatastoreResponse {
     pub config: HueV1ConfigurationResponse,
-    pub lights: HueV1LightMapResponse,
+    pub lights: HueV1LightSimpleMapResponse,
     pub groups: HueV1GroupMapResponse,
     /*
     scenes,
@@ -24,7 +24,7 @@ pub struct HueV1DatastoreResponse {
 impl HueV1DatastoreResponse {
     pub fn build(
         bridge_config: &BridgeConfig,
-        lights: HueV1LightMapResponse,
+        lights: HueV1LightSimpleMapResponse,
         groups: HueV1GroupMapResponse,
     ) -> HueV1DatastoreResponse {
         HueV1DatastoreResponse {

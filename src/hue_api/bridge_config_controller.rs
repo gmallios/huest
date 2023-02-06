@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use crate::{
     bridge::{get_gateway_ip, get_local_ip, get_mac_addr, get_netmask},
     hue_api::types::Config::HueUser,
@@ -21,7 +23,7 @@ pub struct HueConfigController {
     pub device_map: InternalDeviceMap,
     pub group_map: InternalGroupMap,
     pub bridge_config: BridgeConfig,
-    pub light_devices: Vec<Box<dyn LightDevice>>,
+    pub light_devices: BTreeMap<u8, Box<dyn LightDevice>>,
 }
 
 impl HueConfigController {
@@ -32,12 +34,12 @@ impl HueConfigController {
         let group_map = load_config::<InternalGroupMap>("Groups.yaml");
         let bridge_config = Self::init_bridge_config(load_config::<BridgeConfig>("Bridge.yaml"));
 
-        let mut devices: Vec<Box<dyn LightDevice>> = Vec::new();
+        let mut devices: BTreeMap<u8, Box<dyn LightDevice>> = BTreeMap::new();
 
-        for (_, device) in device_map.iter() {
+        for (id, device) in device_map.iter() {
             match device.proto {
                 DeviceProtos::WLED => {
-                    devices.push(Box::new(WLEDDevice::new(device)));
+                    devices.insert(*id, Box::new(WLEDDevice::new(device)));
                 }
             }
         }

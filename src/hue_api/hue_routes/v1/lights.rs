@@ -1,84 +1,21 @@
 use actix_web::{delete, get, post, put, web, Responder};
 use serde::Deserialize;
 
-use crate::hue_api::hue_routes::{V1ApiUserGuard, SharedState};
+use crate::hue_api::{
+    hue_routes::{SharedState, V1ApiUserGuard},
+    types::v1::light::HueV1LightMapResponse,
+};
 
 #[post("/{uid}/lights")]
-pub async fn search_for_new_lights(_uid: V1ApiUserGuard, _api_state: SharedState) -> impl Responder {
-    // Sample Response: [ { "success": { "/lights": "Searching for new devices" }}]
-    "TODO"
-}
-
-#[get("/{uid}/lights")]
-pub async fn get_all_lights(_uid: V1ApiUserGuard, _api_state: SharedState) -> impl Responder {
-    // Sample Response:
-    // {
-    //     "1": {
-    //             "state": {
-    //                 "on": false,
-    //                 "bri": 1,
-    //                 "hue": 33761,
-    //                 "sat": 254,
-    //                 "effect": "none",
-    //                 "xy": [
-    //                     0.3171,
-    //                     0.3366
-    //                 ],
-    //                 "ct": 159,
-    //                 "alert": "none",
-    //                 "colormode": "xy",
-    //                 "mode": "homeautomation",
-    //                 "reachable": true
-    //             },
-    //             "swupdate": {
-    //                 "state": "noupdates",
-    //                 "lastinstall": "2018-01-02T19:24:20"
-    //             },
-    //             "type": "Extended color light",
-    //             "name": "Hue color lamp 7",
-    //             "modelid": "LCT007",
-    //             "manufacturername": "Philips",
-    //             "productname": "Hue color lamp",
-    //             "capabilities": {
-    //                 "certified": true,
-    //                 "control": {
-    //                     "mindimlevel": 5000,
-    //                     "maxlumen": 600,
-    //                     "colorgamuttype": "B",
-    //                     "colorgamut": [
-    //                         [
-    //                             0.675,
-    //                             0.322
-    //                         ],
-    //                         [
-    //                             0.409,
-    //                             0.518
-    //                         ],
-    //                         [
-    //                             0.167,
-    //                             0.04
-    //                         ]
-    //                     ],
-    //                     "ct": {
-    //                         "min": 153,
-    //                         "max": 500
-    //                     }
-    //                 },
-    //                 "streaming": {
-    //                     "renderer": true,
-    //                     "proxy": false
-    //                 }
-    //             },
-    //             "config": {
-    //                 "archetype": "sultanbulb",
-    //                 "function": "mixed",
-    //                 "direction": "omnidirectional"
-    //             },
-    //             "uniqueid": "00:17:88:01:00:bd:c7:b9-0b",
-    //             "swversion": "5.105.0.21169"
-    //         }
-    //     }
-    "TODO"
+pub async fn scan_for_new_lights(_uid: V1ApiUserGuard, _api_state: SharedState) -> impl Responder {
+    let resp = json!([
+        {
+            "success": {
+                "/lights": "Searching for new devices"
+            }
+        }
+    ]);
+    web::Json(resp)
 }
 
 #[get("/{uid}/lights/new")]
@@ -92,32 +29,23 @@ pub async fn get_new_lights(_uid: V1ApiUserGuard, _api_state: SharedState) -> im
     "TODO"
 }
 
+#[get("/{uid}/lights")]
+pub async fn get_all_lights(_uid: V1ApiUserGuard, api_state: SharedState) -> impl Responder {
+    let controller = api_state.get_controller_read();
+    web::Json(HueV1LightMapResponse::build(&controller.light_devices))
+}
+
 #[get("/{uid}/lights/{light_id}")]
 pub async fn get_light(
     _uid: V1ApiUserGuard,
-    _light_id: web::Path<String>,
-    _api_state: SharedState,
+    light_id: web::Path<u8>,
+    api_state: SharedState,
 ) -> impl Responder {
-    // Sample Response
-    // {
-    //     "state": {
-    //         "hue": 50000,
-    //         "on": true,
-    //         "effect": "none",
-    //         "alert": "none",
-    //         "bri": 200,
-    //         "sat": 200,
-    //         "ct": 500,
-    //         "xy": [0.5, 0.5],
-    //         "reachable": true,
-    //         "colormode": "hs"
-    //     },
-    //     "type": "Living Colors",
-    //     "name": "LC 1",
-    //     "modelid": "LC0015",
-    //     "swversion": "1.0.3"
-    // }
-    "TODO"
+    let lights = &api_state.get_controller_read().light_devices;
+    lights.get(&light_id).map_or_else(
+        || web::Json(json!({"error": {"type": 3, "address": format!("/lights/{}", light_id), "description": "resource, /lights/1, not available"}})),
+        |light| web::Json(json!(light.get_v1_state())),
+    )
 }
 
 #[derive(Deserialize)]

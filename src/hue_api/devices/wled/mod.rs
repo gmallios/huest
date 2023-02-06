@@ -1,5 +1,6 @@
 use crate::hue_api::devices::{LightDevice, XYColorData};
 use crate::hue_api::types::internal::{DeviceProtosData, InternalDevice};
+use crate::hue_api::types::v1::light::{HueV1LightItemResponse, HueV1LightSimpleItemResponse};
 use serde::{Deserialize, Serialize};
 
 pub struct WLEDDevice {
@@ -7,6 +8,11 @@ pub struct WLEDDevice {
     pub name: String,
     pub ip: String,
     pub port: u16,
+    internal_state: WLEDInternalState
+}
+
+struct WLEDInternalState {
+
 }
 
 impl LightDevice for WLEDDevice {
@@ -20,6 +26,7 @@ impl LightDevice for WLEDDevice {
                 name: device.name.clone(),
                 ip: data.ip.clone(),
                 port: 80,
+                internal_state: todo!(),
             },
             _ => {
                 panic!("Invalid protocol data for WLEDDevice");
@@ -27,13 +34,11 @@ impl LightDevice for WLEDDevice {
         }
     }
 
-    fn get_v1_state_full(&self) {
+    fn get_v1_state(&self) -> HueV1LightItemResponse {
         unimplemented!()
     }
 
-    fn get_v1_state_simple(
-        &self,
-    ) -> crate::hue_api::types::v1::light::HueV1LightSimpleItemResponse {
+    fn get_v1_state_simple(&self) -> HueV1LightSimpleItemResponse {
         unimplemented!()
     }
 
@@ -57,11 +62,11 @@ impl LightDevice for WLEDDevice {
         self.name.clone()
     }
 
-    fn send_color(&self, color: XYColorData) {
+    fn send_color(&self, _color: XYColorData) {
         unimplemented!()
     }
 
-    fn set_brightness(&self, brightness: u8) {
+    fn set_brightness(&self, _brightness: u8) {
         unimplemented!()
     }
 
@@ -79,8 +84,8 @@ pub struct WLEDProtoData {
     pub ip: String,
     pub backlight: bool,
     pub model: String,
-    pub led_count: i64,
+    pub led_count: u32,
     pub mdns_name: String,
     pub mac: String,
-    pub segment_id: i64,
+    pub segment_id: u32,
 }

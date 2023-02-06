@@ -2,13 +2,13 @@ use crate::hue_api::types::Config::BridgeConfig;
 
 use serde::{Deserialize, Serialize};
 
-use super::light::HueV1LightMapResponse;
+use super::light::HueV1LightSimpleMapResponse;
 
 pub trait HueV1Response<T> {
     // Returns JSON stringified data
     fn from_bridge_config(
         bridge_config: BridgeConfig,
-        _device_map: Option<HueV1LightMapResponse>,
+        _device_map: Option<HueV1LightSimpleMapResponse>,
         // _group_map: Option<HueGroupMap>,
     ) -> String;
 
@@ -17,7 +17,7 @@ pub trait HueV1Response<T> {
     fn build_from_bconf(
         obj: &T,
         _bridge_config: BridgeConfig,
-        _device_map: Option<HueV1LightMapResponse>,
+        _device_map: Option<HueV1LightSimpleMapResponse>,
         // _group_map: Option<HueGroupMap>,
     ) -> T
     where

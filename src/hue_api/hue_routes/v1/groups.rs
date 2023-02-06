@@ -1,7 +1,7 @@
 use actix_web::{delete, get, post, put, web, Responder};
 use serde::Deserialize;
 
-use crate::hue_api::hue_routes::{V1ApiUserGuard, SharedState};
+use crate::hue_api::hue_routes::{SharedState, V1ApiUserGuard};
 
 #[get("/{uid}/groups")]
 pub async fn get_all_groups(_uid: V1ApiUserGuard, _api_state: SharedState) -> impl Responder {

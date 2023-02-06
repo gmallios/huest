@@ -47,7 +47,7 @@ pub struct Action {
 }
 
 impl InternalGroup {
-    fn new(group: &InternalGroup) -> Self {
+    fn new(_group: &InternalGroup) -> Self {
         unimplemented!()
     }
 

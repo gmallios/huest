@@ -40,11 +40,11 @@ impl Default for GroupedLight {
         );
         Self {
             alert: json!(
-                r#"
+                {
                     "action_values": [
                         "breathe"
                     ]
-            "#
+                }
             ),
             color: EmptyObj {},
             dimming: EmptyObj {},

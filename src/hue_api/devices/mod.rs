@@ -2,7 +2,10 @@ use serde::{Deserialize, Serialize};
 
 use self::wled::WLEDProtoData;
 
-use super::types::{internal::InternalDevice, v1::light::HueV1LightSimpleItemResponse};
+use super::types::{
+    internal::InternalDevice,
+    v1::light::{HueV1LightItemResponse, HueV1LightSimpleItemResponse},
+};
 
 pub mod wled;
 
@@ -17,7 +20,7 @@ pub trait LightDevice: Send + Sync {
     fn new(device: &InternalDevice) -> Self
     where
         Self: Sized;
-    fn get_v1_state_full(&self);
+    fn get_v1_state(&self) -> HueV1LightItemResponse;
     fn get_v1_state_simple(&self) -> HueV1LightSimpleItemResponse;
     fn get_v2_state(&self);
     fn get_ip(&self) -> String;

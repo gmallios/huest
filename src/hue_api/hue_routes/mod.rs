@@ -1,7 +1,12 @@
 use actix_web::{get, web, FromRequest};
 use log::debug;
 
-use self::v1::configuration::*;
+use self::v1::{
+    capabilities::get_all_capabilities,
+    configuration::*,
+    lights::{get_all_lights, scan_for_new_lights},
+    sensors::get_all_sensors,
+};
 
 mod v1;
 mod v2;
@@ -86,6 +91,13 @@ pub fn hue_v1_routes() -> actix_web::Scope {
         .service(get_configuration)
         .service(get_full_datastore)
         .service(modify_configuration)
+        /* Light Routes */
+        .service(scan_for_new_lights)
+        .service(get_all_lights)
+        /* Sensor Routes */
+        .service(get_all_sensors)
+        /* Capabilities */
+        .service(get_all_capabilities)
 }
 
 pub fn hue_v2_routes() -> actix_web::Scope {

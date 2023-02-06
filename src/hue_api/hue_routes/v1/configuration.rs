@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
 use crate::hue_api::{
-    hue_routes::{V1ApiUserGuard, SharedState},
+    hue_routes::{SharedState, V1ApiUserGuard},
     types::v1::{
         configuration::HueV1ConfigurationResponse, datastore::HueV1DatastoreResponse,
-        light::HueV1LightMapResponse, responses::HueV1SmallConfigResponse, Swupdate,
+        light::HueV1LightSimpleMapResponse, responses::HueV1SmallConfigResponse, Swupdate,
     },
 };
 use actix_web::{error, get, post, put, web, HttpResponse, Responder};
@@ -77,7 +77,7 @@ pub async fn get_full_datastore(_uid: V1ApiUserGuard, api_state: SharedState) ->
     let controller = &api_state.get_controller_read();
     web::Json(HueV1DatastoreResponse::build(
         &controller.bridge_config,
-        HueV1LightMapResponse::build(&controller.light_devices),
+        HueV1LightSimpleMapResponse::build(&controller.light_devices),
         controller.group_map.get_v1(),
     ))
 }
