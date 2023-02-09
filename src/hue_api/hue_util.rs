@@ -3,6 +3,37 @@ use openssl::ssl::{SslConnector, SslMethod};
 
 static HUE_SWVER_URL: &str = "https://www.philips-hue.com/en-us/support/release-notes/bridge";
 
+pub fn rgb_to_xy(r: u8, g: u8, b: u8) -> (f32, f32) {
+    let r = r as f32 / 255.0;
+    let g = g as f32 / 255.0;
+    let b = b as f32 / 255.0;
+
+    let r = if r > 0.04045 {
+        ((r + 0.055) / 1.055).powf(2.4)
+    } else {
+        r / 12.92
+    };
+    let g = if g > 0.04045 {
+        ((g + 0.055) / 1.055).powf(2.4)
+    } else {
+        g / 12.92
+    };
+    let b = if b > 0.04045 {
+        ((b + 0.055) / 1.055).powf(2.4)
+    } else {
+        b / 12.92
+    };
+
+    let x = r * 0.4124 + g * 0.3576 + b * 0.1805;
+    let y = r * 0.2126 + g * 0.7152 + b * 0.0722;
+    let z = r * 0.0193 + g * 0.1192 + b * 0.9505;
+
+    let x = x / (x + y + z);
+    let y = y / (x + y + z);
+
+    (x, y)
+}
+
 pub async fn get_latest_swversion() -> Option<String> {
     let client = Client::builder()
             .add_default_header((header::USER_AGENT, "Mozilla/5.0 (iPhone13,2; U; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) Version/10.0 Mobile/15E148 Safari/602.1"))
@@ -45,7 +76,7 @@ pub async fn get_latest_swversion() -> Option<String> {
 }
 
 fn openssl_config() -> SslConnector {
-    //Migrate to this https://github.com/alexcrichton/openssl-probe
+    //TODO: Migrate to this https://github.com/alexcrichton/openssl-probe
     let mut builder = SslConnector::builder(SslMethod::tls()).unwrap();
     builder.set_ca_file("./ssl/cacert.pem").unwrap();
     builder.build()

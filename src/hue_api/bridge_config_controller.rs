@@ -20,35 +20,44 @@ use super::{
 };
 
 pub struct HueConfigController {
-    pub device_map: InternalDeviceMap,
+    pub internal_device_map: InternalDeviceMap,
     pub group_map: InternalGroupMap,
     pub bridge_config: BridgeConfig,
     pub light_devices: BTreeMap<u8, Box<dyn LightDevice>>,
+    device_client: reqwest::Client,
 }
 
 impl HueConfigController {
-    pub fn new() -> HueConfigController {
+    pub async fn new() -> HueConfigController {
         create_config_dir_if_not_exists().expect("Could not create config directory.");
 
-        let device_map = load_config::<InternalDeviceMap>("Devices.yaml");
+        let mut internal_device_map = load_config::<InternalDeviceMap>("Devices.yaml");
         let group_map = load_config::<InternalGroupMap>("Groups.yaml");
         let bridge_config = Self::init_bridge_config(load_config::<BridgeConfig>("Bridge.yaml"));
 
         let mut devices: BTreeMap<u8, Box<dyn LightDevice>> = BTreeMap::new();
 
-        for (id, device) in device_map.iter() {
+        let device_client = reqwest::Client::new();
+
+        for (id, mut device) in internal_device_map.iter_mut() {
+            /* We set the id_v1 since it's not deserialized and corresponds to the key of the device */
+            device.id_v1 = *id;
             match device.proto {
                 DeviceProtos::WLED => {
-                    devices.insert(*id, Box::new(WLEDDevice::new(device)));
+                    devices.insert(
+                        *id,
+                        Box::new(WLEDDevice::new(device, device_client.clone()).await),
+                    );
                 }
             }
         }
 
         HueConfigController {
-            device_map,
+            internal_device_map,
             group_map,
             bridge_config,
             light_devices: devices,
+            device_client,
         }
     }
 
@@ -65,7 +74,7 @@ impl HueConfigController {
     pub fn save(&self) {
         // TODO: Log error if save fails
         save_config("Bridge.yaml", &self.bridge_config).expect("Failed to save bridge config");
-        save_config("Devices.yaml", &self.device_map).expect("Failed to save device map");
+        save_config("Devices.yaml", &self.internal_device_map).expect("Failed to save device map");
     }
 
     pub fn is_link_button_pressed(&mut self) -> bool {

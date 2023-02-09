@@ -79,7 +79,8 @@ async fn main() -> std::io::Result<()> {
     thread::spawn(start_hue_mdns);
 
     let api_state = web::Data::new(HueAppState {
-        hue_config_controller: Arc::new(std::sync::RwLock::new(HueConfigController::new())),
+        hue_config_controller: Arc::new(std::sync::RwLock::new(HueConfigController::new().await)),
+        device_req_client: reqwest::Client::new(),
     });
 
     if let Some(ver) = hue_api::hue_util::get_latest_swversion().await {
@@ -91,15 +92,11 @@ async fn main() -> std::io::Result<()> {
         log::debug!("got latest swversion: {}", ver);
     }
 
-    // Debug thread
-    // let state = api_state.clone();
+    // Sync Lights? - Fetch state periodcally
     // thread::spawn(move || {
+    //     let state = api_state.clone();
     //     loop {
-    //         info!(
-    //                 "linkbutton {}",
-    //                 state.get_controller().is_link_button_pressed()
-    //             );
-    //             thread::sleep(std::time::Duration::from_secs(1));
+    //         let device_map = &state.hue_config_controller.read().unwrap().device_map;
     //     }
     // });
 
@@ -158,6 +155,7 @@ fn gen_ssl_cert() -> Result<std::process::Output, std::io::Error> {
 #[derive(Clone)]
 pub struct HueAppState {
     pub hue_config_controller: Arc<RwLock<HueConfigController>>,
+    pub device_req_client: reqwest::Client,
     // Device flow should be parse -> push to list -> e.g call LightDevice.setColor
     //                                             -> e.g call LightDevice.status -> Returns JSON in order to build HueDeviceMap
     // TODO: Rewrite Responses.rs in order to follow this flow

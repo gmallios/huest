@@ -77,7 +77,7 @@ pub async fn get_full_datastore(_uid: V1ApiUserGuard, api_state: SharedState) ->
     let controller = &api_state.get_controller_read();
     web::Json(HueV1DatastoreResponse::build(
         &controller.bridge_config,
-        HueV1LightSimpleMapResponse::build(&controller.light_devices),
+        HueV1LightSimpleMapResponse::build(&controller.light_devices).await,
         controller.group_map.get_v1(),
     ))
 }

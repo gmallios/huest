@@ -32,20 +32,21 @@ pub async fn get_new_lights(_uid: V1ApiUserGuard, _api_state: SharedState) -> im
 #[get("/{uid}/lights")]
 pub async fn get_all_lights(_uid: V1ApiUserGuard, api_state: SharedState) -> impl Responder {
     let controller = api_state.get_controller_read();
-    web::Json(HueV1LightMapResponse::build(&controller.light_devices))
+    web::Json(HueV1LightMapResponse::build(&controller.light_devices).await)
 }
 
-#[get("/{uid}/lights/{light_id}")]
+#[get("/{uid}/lights/{lid}")]
 pub async fn get_light(
-    _uid: V1ApiUserGuard,
-    light_id: web::Path<u8>,
+    params: web::Path<(V1ApiUserGuard, u8)>,
     api_state: SharedState,
 ) -> impl Responder {
+    let lid = params.1;
     let lights = &api_state.get_controller_read().light_devices;
-    lights.get(&light_id).map_or_else(
-        || web::Json(json!({"error": {"type": 3, "address": format!("/lights/{}", light_id), "description": "resource, /lights/1, not available"}})),
-        |light| web::Json(json!(light.get_v1_state())),
-    )
+    if let Some(light) = lights.get(&lid) {
+        return web::Json(json!(light.get_v1_state().await));
+    }
+
+    web::Json(serde_json::Value::Null)
 }
 
 #[derive(Deserialize)]
@@ -64,9 +65,9 @@ pub async fn rename_light(
     "TODO"
 }
 
-#[derive(Deserialize)]
-pub struct NewLightState {
-    on: Option<String>,
+#[derive(Deserialize, Debug)]
+pub struct NewV1LightState {
+    on: Option<bool>,
     bri: Option<u8>,
     hue: Option<u16>,
     sat: Option<u8>,
@@ -84,11 +85,11 @@ pub struct NewLightState {
 
 #[put("/{uid}/lights/{light_id}/state")]
 pub async fn set_light_state(
-    _uid: V1ApiUserGuard,
-    _light_id: web::Path<String>,
-    _body: web::Json<NewLightState>,
+    params: web::Path<(V1ApiUserGuard, u8)>,
+    body: web::Json<NewLightState>,
     _api_state: SharedState,
 ) -> impl Responder {
+    println!("Set light state: {:?}", body);
     // Sample Response:
     //     [
     //     {"success":{"/lights/1/state/bri":200}},

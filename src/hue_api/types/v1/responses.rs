@@ -1,4 +1,4 @@
-use crate::hue_api::types::Config::BridgeConfig;
+use crate::hue_api::types::{internal::ModelIDs, Config::BridgeConfig};
 
 use serde::{Deserialize, Serialize};
 
@@ -34,7 +34,7 @@ pub struct HueV1SmallConfigResponse {
     pub datastoreversion: String,
     pub factorynew: bool,
     pub mac: String,
-    pub modelid: String,
+    pub modelid: ModelIDs,
     pub name: String,
     pub replacesbridgeid: String,
     pub starterkitid: String,
@@ -49,7 +49,7 @@ impl From<&BridgeConfig> for HueV1SmallConfigResponse {
             datastoreversion: "103".to_owned(),
             factorynew: false,
             mac: value.mac.to_owned(),
-            modelid: "BSB002".to_owned(),
+            modelid: ModelIDs::BSB002,
             name: value.name.to_owned(),
             replacesbridgeid: "".to_owned(),
             starterkitid: "".to_owned(),

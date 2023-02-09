@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
 use self::wled::WLEDProtoData;
@@ -16,21 +17,23 @@ pub struct Device {
     pub name: String,
 }
 
+#[async_trait]
 pub trait LightDevice: Send + Sync {
-    fn new(device: &InternalDevice) -> Self
+    async fn new(device: &InternalDevice, client: reqwest::Client) -> Self
     where
         Self: Sized;
-    fn get_v1_state(&self) -> HueV1LightItemResponse;
-    fn get_v1_state_simple(&self) -> HueV1LightSimpleItemResponse;
-    fn get_v2_state(&self);
+    async fn get_v1_state(&self) -> HueV1LightItemResponse;
+    async fn get_v1_state_simple(&self) -> HueV1LightSimpleItemResponse;
+    async fn get_v2_state(&self);
+    async fn send_color(&self, color: XYColorData);
+    async fn set_brightness(&self, brightness: u8);
+    // async fn refetch_state(&self);
     fn get_ip(&self) -> String;
     fn get_port(&self) -> u16;
     fn get_mac(&self) -> String;
     fn get_name(&self) -> String;
     fn get_v1_id(&self) -> u8;
     fn get_v2_id(&self) -> String;
-    fn send_color(&self, color: XYColorData);
-    fn set_brightness(&self, brightness: u8);
 }
 
 pub struct RGBColorData {

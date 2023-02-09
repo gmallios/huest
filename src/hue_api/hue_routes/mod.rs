@@ -4,7 +4,7 @@ use log::debug;
 use self::v1::{
     capabilities::get_all_capabilities,
     configuration::*,
-    lights::{get_all_lights, scan_for_new_lights},
+    lights::{get_all_lights, get_light, scan_for_new_lights, set_light_state},
     sensors::get_all_sensors,
 };
 
@@ -13,9 +13,7 @@ mod v2;
 
 pub type SharedState = web::Data<crate::HueAppState>;
 #[derive(serde::Deserialize, Debug)]
-pub struct V1ApiUserGuard {
-    pub uid: String,
-}
+pub struct V1ApiUserGuard(pub String);
 
 impl FromRequest for V1ApiUserGuard {
     type Error = actix_web::Error;
@@ -32,9 +30,7 @@ impl FromRequest for V1ApiUserGuard {
             state.get_controller_read().user_exists(uid)
         );
         match state.get_controller_read().user_exists(uid) {
-            true => futures::future::ok(V1ApiUserGuard {
-                uid: uid.to_string(),
-            }),
+            true => futures::future::ok(V1ApiUserGuard(uid.to_string())),
             false => futures::future::err(actix_web::error::ErrorUnauthorized("Invalid user")), /* TODO: Return proper NonAuth error */
         }
     }
@@ -94,6 +90,8 @@ pub fn hue_v1_routes() -> actix_web::Scope {
         /* Light Routes */
         .service(scan_for_new_lights)
         .service(get_all_lights)
+        .service(get_light)
+        .service(set_light_state)
         /* Sensor Routes */
         .service(get_all_sensors)
         /* Capabilities */
