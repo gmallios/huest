@@ -1,4 +1,7 @@
-use std::collections::BTreeMap;
+use std::{
+    collections::BTreeMap,
+    sync::{Arc, RwLock},
+};
 
 use crate::{
     bridge::{get_gateway_ip, get_local_ip, get_mac_addr, get_netmask},
@@ -14,37 +17,57 @@ use uuid::Uuid;
 use super::{
     devices::{wled::WLEDDevice, LightDevice},
     types::{
-        internal::{DeviceProtos, InternalDeviceMap, InternalGroupMap},
+        internal::{DeviceProtos, GroupInstance, InternalDeviceMap, InternalGroupMap},
         Config::BridgeConfig,
     },
 };
 
+pub type GroupInstances = Arc<RwLock<BTreeMap<u8, GroupInstance>>>;
+pub type LightInstances = Arc<RwLock<BTreeMap<u8, Box<dyn LightDevice>>>>;
+
 pub struct HueConfigController {
-    pub internal_device_map: InternalDeviceMap,
-    pub group_map: InternalGroupMap,
     pub bridge_config: BridgeConfig,
-    pub light_devices: BTreeMap<u8, Box<dyn LightDevice>>,
     device_client: reqwest::Client,
+    // InternalDevice/Group Maps are used on load/save
+    // They are converted to Instance Maps on load and back to InternalDevice/Group Maps on save
+    pub internal_device_map: InternalDeviceMap,
+    pub internal_group_map: InternalGroupMap,
+    // Instance Maps are used for runtime operations, they are populated from the Device/Group Maps
+    // and are converted to InternalDevice/Group Maps on save
+    pub light_instances: LightInstances,
+    pub group_instances: GroupInstances,
 }
 
 impl HueConfigController {
     pub async fn new() -> HueConfigController {
         create_config_dir_if_not_exists().expect("Could not create config directory.");
 
+        // Create Group 0
+        let a = super::types::internal::InternalGroup {
+            name: "Group 0".into(),
+            id_v2: "idkyet".into(),
+            lights: vec![0],
+            state: super::types::internal::InternalGroupState::default(),
+        };
+
         let mut internal_device_map = load_config::<InternalDeviceMap>("Devices.yaml");
-        let group_map = load_config::<InternalGroupMap>("Groups.yaml");
+        let mut group_map = load_config::<InternalGroupMap>("Groups.yaml");
+        group_map.0.insert(0, a);
         let bridge_config = Self::init_bridge_config(load_config::<BridgeConfig>("Bridge.yaml"));
 
-        let mut devices: BTreeMap<u8, Box<dyn LightDevice>> = BTreeMap::new();
+        let devices: LightInstances = Arc::new(RwLock::new(BTreeMap::new()));
+        let mut group_instances: GroupInstances = Arc::new(RwLock::new(BTreeMap::new()));
 
         let device_client = reqwest::Client::new();
 
+        // TODO: We should be able to rebuild the device BTreeMap at runtime
+        //       since we need to push newly discovered devices to it.
         for (id, mut device) in internal_device_map.iter_mut() {
             /* We set the id_v1 since it's not deserialized and corresponds to the key of the device */
             device.id_v1 = *id;
             match device.proto {
                 DeviceProtos::WLED => {
-                    devices.insert(
+                    devices.write().unwrap().insert(
                         *id,
                         Box::new(WLEDDevice::new(device, device_client.clone()).await),
                     );
@@ -52,12 +75,22 @@ impl HueConfigController {
             }
         }
 
+        
+
+        for (group_id, group) in group_map.0.iter() {
+            group_instances
+                .write()
+                .unwrap()
+                .insert(*group_id, GroupInstance::new(group, devices.clone()));
+        }
+
         HueConfigController {
             internal_device_map,
-            group_map,
+            internal_group_map: group_map,
             bridge_config,
-            light_devices: devices,
+            light_instances: devices,
             device_client,
+            group_instances,
         }
     }
 

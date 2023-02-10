@@ -4,7 +4,7 @@ use actix_web::{
     web, App, HttpResponse, HttpServer,
 };
 use bridge::get_mac_addr;
-use log::{error, info, warn};
+use log::{error, info, warn, debug};
 use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod};
 //use rustls::{ServerConfig, Certificate, PrivateKey};
 //use rustls_pemfile::{certs, pkcs8_private_keys};
@@ -51,6 +51,8 @@ async fn main() -> std::io::Result<()> {
         .filter(Some("selectors"), log::LevelFilter::Off)
         .filter(Some("html5ever"), log::LevelFilter::Off)
         .filter(Some("rustls"), log::LevelFilter::Off)
+        .filter(Some("hyper"), log::LevelFilter::Off)
+        .filter(Some("reqwest"), log::LevelFilter::Off)
         .init();
 
     info!("Starting Hue Bridge...");
@@ -92,13 +94,35 @@ async fn main() -> std::io::Result<()> {
         log::debug!("got latest swversion: {}", ver);
     }
 
+    let state = api_state.clone();
     // Sync Lights? - Fetch state periodcally
-    // thread::spawn(move || {
-    //     let state = api_state.clone();
-    //     loop {
-    //         let device_map = &state.hue_config_controller.read().unwrap().device_map;
-    //     }
-    // });
+    actix_rt::spawn(async move {
+        loop {
+            // TODO: Make this configurable
+            // TODO: Check if a user is connected to the bridge before refetching the state
+            let config_controller = state.hue_config_controller.try_read();
+            match config_controller {
+                Ok(config_controller) => {
+                    match config_controller.light_instances.try_read() {
+                        Ok(light_instances) => {
+                            for (id, device) in light_instances.iter() {
+                                info!("Refetching state for device with id_v1: {} and name: {}", id, device.get_name());
+                                device.refetch_state().await;
+                            }
+                            drop(light_instances);
+                        }
+                        Err(_) => {
+                            warn!("Failed to get read lock on device map while refetching state!");
+                        }
+                    }
+                }
+                Err(_) => {
+                    warn!("Failed to get read lock on device map while refetching state!");
+                }
+            }
+            actix_rt::time::sleep(std::time::Duration::from_secs(5)).await;
+        }
+    });
 
     let mut openssl_builder = SslAcceptor::mozilla_intermediate(SslMethod::tls()).unwrap();
     openssl_builder.set_private_key_file("./ssl/private.pem", SslFiletype::PEM)?;
@@ -117,8 +141,8 @@ async fn main() -> std::io::Result<()> {
             .wrap(Logger::default())
     })
     //.bind_rustls("0.0.0.0:443", load_rustls_config())?
-    .bind_openssl("0.0.0.0:443", openssl_builder)?
-    .bind("0.0.0.0:80")?
+    .bind_openssl("0.0.0.0:443", openssl_builder)? // TODO: Use the arg ip
+    .bind("0.0.0.0:80")? // TODO: Use the arg ip
     .run()
     .await
 }

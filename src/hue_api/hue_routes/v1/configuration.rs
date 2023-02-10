@@ -4,7 +4,8 @@ use crate::hue_api::{
     hue_routes::{SharedState, V1ApiUserGuard},
     types::v1::{
         configuration::HueV1ConfigurationResponse, datastore::HueV1DatastoreResponse,
-        light::HueV1LightSimpleMapResponse, responses::HueV1SmallConfigResponse, Swupdate,
+        group::HueV1GroupMapSimpleResponse, light::HueV1LightSimpleMapResponse,
+        responses::HueV1SmallConfigResponse, Swupdate,
     },
 };
 use actix_web::{error, get, post, put, web, HttpResponse, Responder};
@@ -74,11 +75,16 @@ pub async fn create_user(mut payload: web::Payload, api_state: SharedState) -> i
 
 #[get("/{uid}")]
 pub async fn get_full_datastore(_uid: V1ApiUserGuard, api_state: SharedState) -> impl Responder {
-    let controller = &api_state.get_controller_read();
+    let controller = api_state.get_controller_read();
+    let light_resp =
+        HueV1LightSimpleMapResponse::build(&controller.light_instances.read().unwrap());
+    let group_resp =
+        HueV1GroupMapSimpleResponse::build(&controller.group_instances.read().unwrap());
+
     web::Json(HueV1DatastoreResponse::build(
         &controller.bridge_config,
-        HueV1LightSimpleMapResponse::build(&controller.light_devices).await,
-        controller.group_map.get_v1(),
+        light_resp,
+        group_resp,
     ))
 }
 

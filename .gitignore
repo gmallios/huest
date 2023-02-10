@@ -11,3 +11,5 @@ config/
 
 **/*.pem
 !ssl/cacert.pem
+
+.VSCodeCounter/

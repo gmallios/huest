@@ -5,7 +5,7 @@ use self::v1::{
     capabilities::get_all_capabilities,
     configuration::*,
     lights::{get_all_lights, get_light, scan_for_new_lights, set_light_state},
-    sensors::get_all_sensors,
+    sensors::get_all_sensors, groups::{get_all_groups, get_group},
 };
 
 mod v1;
@@ -92,6 +92,9 @@ pub fn hue_v1_routes() -> actix_web::Scope {
         .service(get_all_lights)
         .service(get_light)
         .service(set_light_state)
+        /* Group Routes */
+        .service(get_all_groups)
+        .service(get_group)
         /* Sensor Routes */
         .service(get_all_sensors)
         /* Capabilities */

@@ -39,8 +39,7 @@ pub mod config {
         let file = match fs::read_to_string(path) {
             Ok(file) => file,
             Err(_) => {
-                println!("Failed to read config file: {}", &path);
-                std::process::exit(1);
+                panic!("Failed to read config file: {}", &path);
             }
         };
 

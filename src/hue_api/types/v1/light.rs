@@ -3,8 +3,7 @@ use std::collections::BTreeMap;
 
 use crate::hue_api::{devices::LightDevice, types::internal::ModelIDs};
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct HueV1LightSimpleMapResponse(BTreeMap<u8, HueV1LightSimpleItemResponse>);
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct HueV1LightMapResponse(BTreeMap<u8, HueV1LightItemResponse>);
 
@@ -12,7 +11,22 @@ impl HueV1LightMapResponse {
     pub async fn build(devices: &BTreeMap<u8, Box<dyn LightDevice>>) -> HueV1LightMapResponse {
         let mut lights = BTreeMap::new();
         for (_id, device) in devices {
-            lights.insert(device.get_v1_id(), device.get_v1_state().await);
+            lights.insert(device.get_v1_id(), device.get_v1_state());
+        }
+        Self(lights)
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct HueV1LightSimpleMapResponse(BTreeMap<u8, HueV1LightSimpleItemResponse>);
+
+impl HueV1LightSimpleMapResponse {
+    pub fn build(
+        devices: &BTreeMap<u8, Box<dyn LightDevice>>,
+    ) -> HueV1LightSimpleMapResponse {
+        let mut lights = BTreeMap::new();
+        for (_id, device) in devices {
+            lights.insert(device.get_v1_id(), device.get_v1_state_simple());
         }
         Self(lights)
     }
@@ -30,16 +44,24 @@ pub struct HueV1LightItemResponse {
     pub capabilities: Capabilities,
 }
 
-impl HueV1LightSimpleMapResponse {
-    pub async fn build(
-        devices: &BTreeMap<u8, Box<dyn LightDevice>>,
-    ) -> HueV1LightSimpleMapResponse {
-        let mut lights = BTreeMap::new();
-        for (_id, device) in devices {
-            lights.insert(device.get_v1_id(), device.get_v1_state_simple().await);
-        }
-        Self(lights)
-    }
+
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct HueV1NewLightState {
+    pub on: Option<bool>,
+    pub bri: Option<u8>,
+    pub hue: Option<u16>,
+    pub sat: Option<u8>,
+    pub xy: Option<(f32, f32)>,
+    pub ct: Option<u16>,
+    pub alert: Option<String>,
+    pub effect: Option<String>,
+    pub transitiontime: Option<u16>,
+    pub bri_inc: Option<i16>,     // -254 to 254
+    pub sat_inc: Option<i16>,     // -254 to 254
+    pub hue_inc: Option<i32>,     // -65534 to 65534
+    pub ct_inc: Option<i32>,      // -65534 to 65534
+    pub xy_inc: Option<Vec<f64>>, // Max [0.5, 0.5]
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -169,7 +191,7 @@ pub struct Startup {
     configured: bool,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct State {
     pub on: bool,
     pub bri: i64,

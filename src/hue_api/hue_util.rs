@@ -3,6 +3,38 @@ use openssl::ssl::{SslConnector, SslMethod};
 
 static HUE_SWVER_URL: &str = "https://www.philips-hue.com/en-us/support/release-notes/bridge";
 
+pub fn xy_to_rgb(x: f32, y: f32, _bri: u8) -> (u8, u8, u8)  {
+    let Z = 1.0 - x - y;
+
+    let R = x * 3.2406 + y * -1.5372 + Z * -0.4986;
+    let G = x * -0.9689 + y * 1.8758 + Z * 0.0415;
+    let B = x * 0.0557 + y * -0.2040 + Z * 1.0570;
+
+    let R = if R <= 0.0031308 {
+        12.92 * R
+    } else {
+        (1.0 + 0.055) * R.powf(1.0 / 2.4) - 0.055
+    };
+
+    let G = if G <= 0.0031308 {
+        12.92 * G
+    } else {
+        (1.0 + 0.055) * G.powf(1.0 / 2.4) - 0.055
+    };
+
+    let B = if B <= 0.0031308 {
+        12.92 * B
+    } else {
+        (1.0 + 0.055) * B.powf(1.0 / 2.4) - 0.055
+    };
+
+    let R = (R * 255.0) as u8;
+    let G = (G * 255.0) as u8;
+    let B = (B * 255.0) as u8;
+
+    (R, G, B)
+}
+
 pub fn rgb_to_xy(r: u8, g: u8, b: u8) -> (f32, f32) {
     let r = r as f32 / 255.0;
     let g = g as f32 / 255.0;

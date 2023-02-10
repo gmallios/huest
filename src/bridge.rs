@@ -17,8 +17,8 @@ pub struct BridgeParams {
     pub iface: Interface,
 }
 
-// Source of truth?
-// Should be used exclusively for reads after initialization.
+// TODO: Migrate to using args
+// TODO: On openwrt, the default interface is not the one we want and thus we cannot get ip/mac
 pub static BRIDGE_PARAMS: Lazy<Arc<RwLock<BridgeParams>>> = Lazy::new(|| {
     let iface = get_iface();
     let local_ip = match iface.ipv4.first() {

@@ -2,58 +2,17 @@ use actix_web::{delete, get, post, put, web, Responder};
 use serde::Deserialize;
 
 use crate::hue_api::hue_routes::{SharedState, V1ApiUserGuard};
+use crate::hue_api::types::v1::group::HueV1GroupMapResponse;
 
 #[get("/{uid}/groups")]
-pub async fn get_all_groups(_uid: V1ApiUserGuard, _api_state: SharedState) -> impl Responder {
-    // Sample Response:
-    // {
-    //     "1": {
-    //         "name": "Group 1",
-    //         "lights": [
-    //             "1",
-    //             "2"
-    //         ],
-    //         "type": "LightGroup",
-    //         "action": {
-    //             "on": true,
-    //             "bri": 254,
-    //             "hue": 10000,
-    //             "sat": 254,
-    //             "effect": "none",
-    //             "xy": [
-    //                 0.5,
-    //                 0.5
-    //             ],
-    //             "ct": 250,
-    //             "alert": "select",
-    //             "colormode": "ct"
-    //         }
-    //     },
-    //     "2": {
-    //         "name": "Group 2",
-    //         "lights": [
-    //             "3",
-    //             "4",
-    //             "5"
-    //         ],
-    //         "type": "LightGroup",
-    //         "action": {
-    //             "on": true,
-    //             "bri": 153,
-    //             "hue": 4345,
-    //             "sat": 254,
-    //             "effect": "none",
-    //             "xy": [
-    //                 0.5,
-    //                 0.5
-    //             ],
-    //             "ct": 250,
-    //             "alert": "select",
-    //             "colormode": "ct"
-    //         }
-    //     }
-    // }
-    "TODO"
+pub async fn get_all_groups(_uid: V1ApiUserGuard, api_state: SharedState) -> impl Responder {
+    web::Json(HueV1GroupMapResponse::build(
+        &api_state
+            .get_controller_read()
+            .group_instances
+            .read()
+            .unwrap(),
+    ))
 }
 
 #[derive(Deserialize)]
@@ -77,27 +36,17 @@ pub async fn create_new_group(
 
 #[get("/{uid}/groups/{group_id}")]
 pub async fn get_group(
-    _uid: V1ApiUserGuard,
-    _group_id: web::Path<String>,
-    _api_state: SharedState,
+    params: web::Path<(V1ApiUserGuard, u8)>,
+    api_state: SharedState,
 ) -> impl Responder {
-    // Sample Response
-    // {
-    //     "action": {
-    //         "on": true,
-    //         "hue": 0,
-    //         "effect": "none",
-    //         "bri": 100,
-    //         "sat": 100,
-    //         "ct": 500,
-    //         "xy": [0.5, 0.5]
-    //     },
-    //     "lights": [
-    //         "1",
-    //         "2"
-    //     ],
-    //         "state":{"any_on":true, "all_on":true}   "type":"Room",   "class":"Bedroom",   "name":"Master bedroom", }
-    "TODO"
+    let gid = params.1;
+    let groups = &api_state.get_controller_read().group_instances;
+    if let Some(group) = groups.read().unwrap().get(&gid) {
+        return web::Json(json!(group.get_v1_state()));
+    }
+
+    // TODO: Return propper Hue Error Response
+    web::Json(serde_json::Value::Null)
 }
 
 #[derive(Deserialize)]

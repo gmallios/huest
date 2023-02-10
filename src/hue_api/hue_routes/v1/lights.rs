@@ -6,6 +6,8 @@ use crate::hue_api::{
     types::v1::light::HueV1LightMapResponse,
 };
 
+use crate::hue_api::types::v1::light::HueV1NewLightState;
+
 #[post("/{uid}/lights")]
 pub async fn scan_for_new_lights(_uid: V1ApiUserGuard, _api_state: SharedState) -> impl Responder {
     let resp = json!([
@@ -32,7 +34,8 @@ pub async fn get_new_lights(_uid: V1ApiUserGuard, _api_state: SharedState) -> im
 #[get("/{uid}/lights")]
 pub async fn get_all_lights(_uid: V1ApiUserGuard, api_state: SharedState) -> impl Responder {
     let controller = api_state.get_controller_read();
-    web::Json(HueV1LightMapResponse::build(&controller.light_devices).await)
+    let resp = HueV1LightMapResponse::build(&controller.light_instances.read().unwrap()).await;
+    web::Json(resp)
 }
 
 #[get("/{uid}/lights/{lid}")]
@@ -41,9 +44,9 @@ pub async fn get_light(
     api_state: SharedState,
 ) -> impl Responder {
     let lid = params.1;
-    let lights = &api_state.get_controller_read().light_devices;
-    if let Some(light) = lights.get(&lid) {
-        return web::Json(json!(light.get_v1_state().await));
+    let lights = &api_state.get_controller_read().light_instances;
+    if let Some(light) = lights.read().unwrap().get(&lid) {
+        return web::Json(json!(light.get_v1_state()));
     }
 
     web::Json(serde_json::Value::Null)
@@ -65,38 +68,77 @@ pub async fn rename_light(
     "TODO"
 }
 
-#[derive(Deserialize, Debug)]
-pub struct NewV1LightState {
-    on: Option<bool>,
-    bri: Option<u8>,
-    hue: Option<u16>,
-    sat: Option<u8>,
-    xy: Option<Vec<f64>>,
-    ct: Option<u16>,
-    alert: Option<String>,
-    effect: Option<String>,
-    transitiontime: Option<u16>,
-    bri_inc: Option<i16>,     // -254 to 254
-    sat_inc: Option<i16>,     // -254 to 254
-    hue_inc: Option<i32>,     // -65534 to 65534
-    ct_inc: Option<i32>,      // -65534 to 65534
-    xy_inc: Option<Vec<f64>>, // Max [0.5, 0.5]
-}
-
 #[put("/{uid}/lights/{light_id}/state")]
 pub async fn set_light_state(
     params: web::Path<(V1ApiUserGuard, u8)>,
-    body: web::Json<NewLightState>,
-    _api_state: SharedState,
+    new_state: web::Json<HueV1NewLightState>,
+    api_state: SharedState,
 ) -> impl Responder {
-    println!("Set light state: {:?}", body);
-    // Sample Response:
-    //     [
-    //     {"success":{"/lights/1/state/bri":200}},
-    //     {"success":{"/lights/1/state/on":true}},
-    //     {"success":{"/lights/1/state/hue":50000}}
-    // ]
-    "TODO"
+    let lid = params.1;
+    let lights = &api_state.get_controller_read().light_instances;
+    if let Some(light) = lights.read().unwrap().get(&lid) {
+        light.set_v1_state(new_state.clone()).await;
+        let mut res = vec![];
+        if let Some(on) = new_state.on {
+            res.push(json!({
+                "success": {
+                    "/lights/{lid}/state/on": on
+                }
+            }));
+        }
+        if let Some(bri) = new_state.bri {
+            res.push(json!({
+                "success": {
+                    "/lights/{lid}/state/bri": bri
+                }
+            }));
+        }
+        if let Some(hue) = new_state.hue {
+            res.push(json!({
+                "success": {
+                    "/lights/{lid}/state/hue": hue
+                }
+            }));
+        }
+        if let Some(sat) = new_state.sat {
+            res.push(json!({
+                "success": {
+                    "/lights/{lid}/state/sat": sat
+                }
+            }));
+        }
+        if let Some(ct) = new_state.ct {
+            res.push(json!({
+                "success": {
+                    "/lights/{lid}/state/ct": ct
+                }
+            }));
+        }
+        if let Some(xy) = new_state.xy {
+            res.push(json!({
+                "success": {
+                    "/lights/{lid}/state/xy": xy
+                }
+            }));
+        }
+        if let Some(alert) = &new_state.alert {
+            res.push(json!({
+                "success": {
+                    "/lights/{lid}/state/alert": alert
+                }
+            }));
+        }
+        if let Some(effect) = &new_state.effect {
+            res.push(json!({
+                "success": {
+                    "/lights/{lid}/state/effect": effect
+                }
+            }));
+        }
+        return web::Json(json!(res));
+    }
+
+    web::Json(serde_json::Value::Null) /* TODO: Build correct response */
 }
 
 #[delete("/{uid}/lights/{light_id}")]

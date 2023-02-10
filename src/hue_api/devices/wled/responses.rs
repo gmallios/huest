@@ -113,7 +113,7 @@ impl From<(WLEDStateResponse, Seg)> for light::State {
             bri: value.0.bri,
             hue: 0,
             sat: 0,
-            xy:  rgb_to_xy(value.1.col[0][0], value.1.col[0][1], value.1.col[0][2]),
+            xy: rgb_to_xy(value.1.col[0][0], value.1.col[0][1], value.1.col[0][2]),
             ct: 0,
             alert: "none".into(),
             colormode: "xy".into(),
